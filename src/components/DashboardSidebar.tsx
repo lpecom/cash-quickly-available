@@ -1,4 +1,13 @@
-import { Home, ShoppingCart, Users, BarChart, Settings } from "lucide-react";
+import {
+  User,
+  Users,
+  ShoppingBag,
+  LayoutGrid,
+  FileText,
+  Package,
+  MapPin,
+  Network,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -8,14 +17,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Dashboard", icon: Home, url: "/" },
-  { title: "Orders", icon: ShoppingCart, url: "#" },
-  { title: "Customers", icon: Users, url: "#" },
-  { title: "Analytics", icon: BarChart, url: "#" },
-  { title: "Settings", icon: Settings, url: "#" },
+  { title: "Perfil", icon: User, url: "#" },
+  { title: "Recrute e Ganhe", icon: Users, url: "#" },
+  { title: "Loja", icon: ShoppingBag, url: "#" },
+  {
+    title: "Relatórios",
+    icon: FileText,
+    url: "#",
+    submenu: [
+      { title: "Dashboard", url: "/" },
+      { title: "Lista", url: "#" },
+      { title: "Abandonos de carrinho", url: "#" },
+    ],
+  },
+  { title: "Produtos", icon: Package, url: "#" },
+  { title: "Localidades", icon: MapPin, url: "#" },
+  { title: "Integrações", icon: Network, url: "#" },
 ];
 
 export function DashboardSidebar() {
@@ -23,20 +46,42 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarContent>
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-primary">COD Platform</h1>
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold text-primary">Logzz</h1>
+          </div>
+          <button className="mt-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+            Trocar de versão
+          </button>
         </div>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-2">
+                    <a
+                      href={item.url}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                    >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
+                  {item.submenu && (
+                    <SidebarMenuSub>
+                      {item.submenu.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            href={subItem.url}
+                            isActive={subItem.url === "/"}
+                          >
+                            {subItem.title}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
