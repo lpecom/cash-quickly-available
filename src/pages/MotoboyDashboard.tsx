@@ -1,18 +1,9 @@
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Package, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
-// Temporary mock data - replace with real API data later
 const mockOrders = [
   {
     id: "1",
@@ -43,90 +34,83 @@ const MotoboyDashboard = () => {
     );
 
     const message = newStatus === "delivered" 
-      ? "Pedido marcado como entregue com sucesso!"
-      : "Pedido marcado como não entregue";
+      ? "Pedido marcado como entregue!"
+      : "Pedido não entregue";
       
     toast({
       title: message,
-      description: `Pedido #${orderId} atualizado.`,
+      description: `Pedido #${orderId}`,
     });
   };
 
   return (
-    <div className="min-h-screen bg-secondary p-4 pb-20 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-secondary p-4 pb-20">
+      <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold md:text-3xl">Entregas</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie suas entregas do dia
+            <h1 className="text-xl font-bold">Entregas</h1>
+            <p className="text-sm text-muted-foreground">
+              Gerencie suas entregas
             </p>
           </div>
-          <Badge variant="outline" className="px-4 py-2">
-            <Package className="w-4 h-4 mr-2" />
-            {orders.length} entregas pendentes
+          <Badge variant="outline" className="px-3 py-1">
+            <Package className="w-4 h-4 mr-1" />
+            {orders.length}
           </Badge>
         </div>
 
-        <div className="bg-card rounded-lg shadow-sm overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pedido</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell>#{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                    {order.address}
-                  </TableCell>
-                  <TableCell>{order.amount}</TableCell>
-                  <TableCell>{order.items}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={order.status === "delivered" ? "default" : "secondary"}
-                    >
-                      {order.status === "delivered" ? "Entregue" : "Pendente"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => updateOrderStatus(order.id, "delivered")}
-                        disabled={order.status === "delivered"}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="hidden md:inline">Entregue</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => updateOrderStatus(order.id, "not_delivered")}
-                        disabled={order.status === "delivered"}
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span className="hidden md:inline">Não entregue</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-card rounded-lg shadow-sm p-4 space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">Pedido #{order.id}</h3>
+                  <p className="text-sm text-muted-foreground">{order.customer}</p>
+                </div>
+                <Badge
+                  variant={order.status === "delivered" ? "default" : "secondary"}
+                >
+                  {order.status === "delivered" ? "Entregue" : "Pendente"}
+                </Badge>
+              </div>
+
+              <div className="flex items-start gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                <span className="flex-1">{order.address}</span>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span>{order.amount}</span>
+                <span>{order.items}</span>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => updateOrderStatus(order.id, "delivered")}
+                  disabled={order.status === "delivered"}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Entregue
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => updateOrderStatus(order.id, "not_delivered")}
+                  disabled={order.status === "delivered"}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Não entregue
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

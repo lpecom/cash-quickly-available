@@ -1,68 +1,58 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign } from "lucide-react";
+import { DollarSign, ChevronRight } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Mock data - replace with real API data later
 const payments = [
   {
     id: "1",
     orderId: "#1234",
     amount: "R$ 15,00",
-    date: "2024-02-20",
+    date: "20/02",
     status: "paid",
   },
   {
     id: "2",
     orderId: "#1235",
     amount: "R$ 12,00",
-    date: "2024-02-20",
+    date: "20/02",
     status: "pending",
   },
 ];
 
 const MotoboyPayments = () => {
   return (
-    <div className="min-h-screen bg-secondary p-4 pb-20 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-secondary p-4 pb-20">
+      <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold md:text-3xl">Pagamentos</h1>
-            <p className="text-muted-foreground mt-1">Acompanhe seus ganhos</p>
+            <h1 className="text-xl font-bold">Pagamentos</h1>
+            <p className="text-sm text-muted-foreground">Seus ganhos</p>
           </div>
-          <Badge variant="outline" className="px-4 py-2">
-            <DollarSign className="w-4 h-4 mr-2" />
-            Total: R$ 27,00
+          <Badge variant="outline" className="px-3 py-1">
+            <DollarSign className="w-4 h-4 mr-1" />
+            R$ 27,00
           </Badge>
         </div>
 
-        <div className="bg-card rounded-lg shadow-sm overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pedido</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.orderId}</TableCell>
-                  <TableCell>{payment.amount}</TableCell>
-                  <TableCell>{payment.date}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={payment.status === "paid" ? "default" : "secondary"}
-                    >
-                      {payment.status === "paid" ? "Pago" : "Pendente"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ScrollArea className="h-[calc(100vh-180px)]">
+          <div className="space-y-4">
+            {payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="bg-card rounded-lg shadow-sm p-4 flex items-center justify-between"
+              >
+                <div>
+                  <h3 className="font-medium">Pedido {payment.orderId}</h3>
+                  <p className="text-sm text-muted-foreground">{payment.date}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{payment.amount}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
