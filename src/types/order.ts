@@ -35,7 +35,17 @@ export interface Order {
   address: string;
   status: OrderStatus;
   total: number;
+  phone: string; // Added phone property
   products: OrderProduct[];
   createdAt: string;
   driverId?: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: "status_change" | "call" | "message";
+  timestamp: Date;
+  description: string;
+  status?: OrderStatus;
+  agent?: string;
 }

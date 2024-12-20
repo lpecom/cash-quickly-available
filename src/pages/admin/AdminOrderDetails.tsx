@@ -2,18 +2,11 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Phone, MessageSquare } from "lucide-react";
-import { Order, orderStatusMap, Product } from "@/types/order";
+import { Plus } from "lucide-react";
+import { Order, Product } from "@/types/order";
 import { OrderTimeline } from "@/components/admin/OrderTimeline";
+import { OrderCustomerInfo } from "@/components/admin/OrderCustomerInfo";
+import { OrderProductList } from "@/components/admin/OrderProductList";
 import { toast } from "sonner";
 
 // Mock data - replace with real data later
@@ -37,28 +30,28 @@ const mockProducts: Product[] = [
 const mockEvents = [
   {
     id: "1",
-    type: "status_change",
+    type: "status_change" as const,
     timestamp: new Date("2024-03-10T10:00:00"),
     description: "Pedido criado",
-    status: "pending",
+    status: "pending" as const,
   },
   {
     id: "2",
-    type: "call",
+    type: "call" as const,
     timestamp: new Date("2024-03-10T10:15:00"),
     description: "Ligação realizada para confirmar endereço",
     agent: "Maria Silva",
   },
   {
     id: "3",
-    type: "status_change",
+    type: "status_change" as const,
     timestamp: new Date("2024-03-10T10:30:00"),
     description: "Pedido confirmado",
-    status: "confirmed",
+    status: "confirmed" as const,
   },
   {
     id: "4",
-    type: "message",
+    type: "message" as const,
     timestamp: new Date("2024-03-10T11:00:00"),
     description: "Mensagem enviada: Seu pedido está sendo preparado",
     agent: "João Santos",
@@ -98,56 +91,18 @@ const AdminOrderDetails = () => {
     toast.success("Produto removido do pedido");
   };
 
-  const handleCall = () => {
-    // In a real implementation, this could integrate with a VOIP service
-    window.location.href = `tel:${order.phone}`;
-    toast.success("Iniciando chamada...");
-  };
-
-  const handleMessage = () => {
-    // In a real implementation, this could open a chat interface or WhatsApp
-    window.open(`https://wa.me/55${order.phone}`, '_blank');
-    toast.success("Abrindo WhatsApp...");
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Pedido #{orderId}</h1>
-          <p className="text-muted-foreground">
-            Cliente: {order.customer}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCall}>
-            <Phone className="mr-2 h-4 w-4" />
-            Ligar
-          </Button>
-          <Button variant="outline" onClick={handleMessage}>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Mensagem
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Pedido #{orderId}</h1>
+        <p className="text-muted-foreground">
+          Cliente: {order.customer}
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Informações do Cliente</h2>
-            <div>
-              <p className="font-medium">Nome</p>
-              <p>{order.customer}</p>
-            </div>
-            <div>
-              <p className="font-medium">Endereço</p>
-              <p>{order.address}</p>
-            </div>
-            <div>
-              <p className="font-medium">Telefone</p>
-              <p>{order.phone}</p>
-            </div>
-          </div>
+          <OrderCustomerInfo order={order} />
 
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Adicionar Produto</h2>
@@ -178,40 +133,10 @@ const AdminOrderDetails = () => {
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Preço Unit.</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {order.products.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.product.name}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>R$ {item.product.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      R$ {(item.quantity * item.product.price).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveProduct(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <OrderProductList 
+            products={order.products}
+            onRemoveProduct={handleRemoveProduct}
+          />
         </div>
 
         <div className="space-y-6">

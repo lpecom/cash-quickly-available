@@ -2,21 +2,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Phone, MessageSquare, Clock, CheckCircle2, XCircle, Package, Truck } from "lucide-react";
 import { format } from "date-fns";
-
-interface TimelineEvent {
-  id: string;
-  type: "status_change" | "call" | "message";
-  timestamp: Date;
-  description: string;
-  status?: string;
-  agent?: string;
-}
+import { OrderStatus, TimelineEvent } from "@/types/order";
 
 interface OrderTimelineProps {
   events: TimelineEvent[];
 }
 
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: OrderStatus) => {
   switch (status) {
     case "pending":
       return <Clock className="w-4 h-4" />;
@@ -33,7 +25,7 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getEventIcon = (type: string) => {
+const getEventIcon = (type: TimelineEvent["type"]) => {
   switch (type) {
     case "call":
       return <Phone className="w-4 h-4" />;
