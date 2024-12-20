@@ -4,6 +4,7 @@ import {
   Users,
   Settings,
   LayoutGrid,
+  BoxesIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,6 +23,7 @@ const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/admin" },
   { title: "Pedidos", icon: Package, url: "/admin/orders" },
   { title: "Entregadores", icon: Users, url: "/admin/drivers" },
+  { title: "Produtos", icon: BoxesIcon, url: "/admin/products" },
   { title: "Configurações", icon: Settings, url: "/admin/settings" },
 ];
 
