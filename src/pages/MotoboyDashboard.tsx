@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { Package, MapPin, CheckCircle, XCircle, Navigation } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { Card } from "@/components/ui/card";
 
 const mockOrders = [
   {
@@ -12,6 +13,7 @@ const mockOrders = [
     status: "pending",
     amount: "R$ 150,00",
     items: "2 items",
+    distance: "1.2km",
   },
   {
     id: "2",
@@ -20,11 +22,37 @@ const mockOrders = [
     status: "pending",
     amount: "R$ 89,90",
     items: "1 item",
+    distance: "0.8km",
   },
 ];
 
 const MotoboyDashboard = () => {
   const [orders, setOrders] = useState(mockOrders);
+  const [currentLocation, setCurrentLocation] = useState<GeolocationPosition | null>(null);
+  const [recommendedOrder, setRecommendedOrder] = useState<typeof mockOrders[0] | null>(null);
+
+  useEffect(() => {
+    // Get current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation(position);
+          // In a real app, we would use the position to calculate the nearest order
+          // For now, we'll just use the first pending order
+          const nextOrder = orders.find((order) => order.status === "pending");
+          setRecommendedOrder(nextOrder || null);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast({
+            title: "Erro ao obter localização",
+            description: "Por favor, ative a localização do seu dispositivo",
+            variant: "destructive",
+          });
+        }
+      );
+    }
+  }, [orders]);
 
   const updateOrderStatus = (orderId: string, newStatus: "delivered" | "not_delivered") => {
     setOrders((prevOrders) =>
@@ -58,6 +86,33 @@ const MotoboyDashboard = () => {
             {orders.length}
           </Badge>
         </div>
+
+        {recommendedOrder && (
+          <Card className="bg-primary/10 p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Navigation className="w-5 h-5 text-primary" />
+              <h2 className="font-semibold">Entrega Recomendada</h2>
+            </div>
+            <div className="space-y-2">
+              <p className="font-medium">{recommendedOrder.customer}</p>
+              <div className="flex items-start gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                <span className="flex-1">{recommendedOrder.address}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>{recommendedOrder.amount}</span>
+                <Badge variant="secondary">{recommendedOrder.distance}</Badge>
+              </div>
+              <Button 
+                className="w-full mt-2"
+                onClick={() => updateOrderStatus(recommendedOrder.id, "delivered")}
+              >
+                <Navigation className="w-4 h-4 mr-2" />
+                Iniciar Entrega
+              </Button>
+            </div>
+          </Card>
+        )}
 
         <div className="space-y-4">
           {orders.map((order) => (
