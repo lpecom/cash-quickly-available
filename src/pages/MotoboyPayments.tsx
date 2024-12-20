@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, ChevronRight } from "lucide-react";
+import { DollarSign, ChevronRight, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "react-router-dom";
 
@@ -7,20 +7,33 @@ const payments = [
   {
     id: "1",
     orderId: "#1234",
-    amount: "R$ 15,00",
+    amount: 15.00,
     date: "20/02",
     status: "paid",
+    delivered: true,
   },
   {
     id: "2",
     orderId: "#1235",
-    amount: "R$ 12,00",
+    amount: 12.00,
     date: "20/02",
     status: "pending",
+    delivered: false,
   },
 ];
 
 const MotoboyPayments = () => {
+  const calculateTotalAmount = () => {
+    return payments.reduce((total, payment) => {
+      const adjustedAmount = payment.delivered ? payment.amount : payment.amount / 2;
+      return total + adjustedAmount;
+    }, 0);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return `R$ ${amount.toFixed(2)}`;
+  };
+
   return (
     <div className="min-h-screen bg-secondary p-4 pb-20">
       <div className="max-w-lg mx-auto">
@@ -31,7 +44,7 @@ const MotoboyPayments = () => {
           </div>
           <Badge variant="outline" className="px-3 py-1">
             <DollarSign className="w-4 h-4 mr-1" />
-            R$ 27,00
+            {formatCurrency(calculateTotalAmount())}
           </Badge>
         </div>
 
@@ -49,7 +62,24 @@ const MotoboyPayments = () => {
                     <p className="text-sm text-muted-foreground">{payment.date}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-medium">{payment.amount}</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        {payment.delivered ? (
+                          <Badge variant="success" className="flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Entregue
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <XCircle className="w-3 h-3" />
+                            Não entregue
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="font-medium">
+                        {formatCurrency(payment.delivered ? payment.amount : payment.amount / 2)}
+                      </span>
+                    </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </div>
