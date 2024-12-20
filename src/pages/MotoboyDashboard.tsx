@@ -173,7 +173,7 @@ const MotoboyDashboard = () => {
               Entrega Não Concluída
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>Motivo da Não Entrega</DialogTitle>
               <DialogDescription>
@@ -181,12 +181,12 @@ const MotoboyDashboard = () => {
               </DialogDescription>
             </DialogHeader>
             <Select onValueChange={setSelectedReason}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Selecione um motivo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {DELIVERY_FAILURE_REASONS.map((reason) => (
-                  <SelectItem key={reason} value={reason}>
+                  <SelectItem key={reason} value={reason} className="bg-white hover:bg-accent">
                     {reason}
                   </SelectItem>
                 ))}
