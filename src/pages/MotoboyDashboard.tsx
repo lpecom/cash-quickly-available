@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, Navigation } from "lucide-react";
+import { Package, MapPin, Navigation, MessageCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 
@@ -14,6 +14,7 @@ const mockOrders = [
     amount: "R$ 150,00",
     items: "2 items",
     distance: "1.2km",
+    phone: "5511999999999" // Added phone number
   },
   {
     id: "2",
@@ -23,6 +24,7 @@ const mockOrders = [
     amount: "R$ 89,90",
     items: "1 item",
     distance: "0.8km",
+    phone: "5511888888888" // Added phone number
   },
 ];
 
@@ -64,6 +66,16 @@ const MotoboyDashboard = () => {
     });
   };
 
+  const contactCustomer = (phone: string) => {
+    const whatsappUrl = `https://wa.me/${phone}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "Redirecionando para WhatsApp",
+      description: "Você será redirecionado para conversar com o cliente",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-secondary p-4 pb-20">
       <div className="max-w-lg mx-auto">
@@ -96,13 +108,24 @@ const MotoboyDashboard = () => {
                 <span>{recommendedOrder.amount}</span>
                 <Badge variant="secondary">{recommendedOrder.distance}</Badge>
               </div>
-              <Button 
-                className="w-full mt-2"
-                onClick={() => startDelivery(recommendedOrder.id)}
-              >
-                <Navigation className="w-4 h-4 mr-2" />
-                Iniciar Entrega
-              </Button>
+              {recommendedOrder.status === "pending" ? (
+                <Button 
+                  className="w-full mt-2"
+                  onClick={() => startDelivery(recommendedOrder.id)}
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Iniciar Entrega
+                </Button>
+              ) : (
+                <Button
+                  className="w-full mt-2"
+                  variant="outline"
+                  onClick={() => contactCustomer(recommendedOrder.phone)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Avisar Cliente
+                </Button>
+              )}
             </div>
           </Card>
         )}
@@ -135,13 +158,22 @@ const MotoboyDashboard = () => {
                 <span>{order.items}</span>
               </div>
 
-              {order.status === "pending" && (
+              {order.status === "pending" ? (
                 <Button
                   className="w-full"
                   onClick={() => startDelivery(order.id)}
                 >
                   <Navigation className="w-4 h-4 mr-2" />
                   Iniciar Entrega
+                </Button>
+              ) : (
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => contactCustomer(order.phone)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Avisar Cliente
                 </Button>
               )}
             </div>
