@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, MessageCircle, Package, ScrollText } from "lucide-react";
+import { MapPin, Navigation, MessageCircle, Package, ScrollText, LoaderCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { DeliveryButtons } from "./DeliveryButtons";
 
@@ -48,8 +48,11 @@ export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCa
           </div>
           <Badge
             variant={order.status === "in_progress" ? "default" : "secondary"}
-            className={order.status === "in_progress" ? "animate-pulse" : ""}
+            className={`flex items-center gap-1 ${order.status === "in_progress" ? "animate-pulse" : ""}`}
           >
+            {order.status === "in_progress" && (
+              <LoaderCircle className="w-3 h-3 animate-spin" />
+            )}
             {order.status === "in_progress" ? "Em andamento" : "Pendente"}
           </Badge>
         </div>
