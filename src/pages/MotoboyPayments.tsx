@@ -38,7 +38,7 @@ const payments = [
 const MotoboyPayments = () => {
   const calculateTotalAmount = () => {
     return payments.reduce((total, payment) => {
-      if (payment.type === "saida") return total - payment.amount;
+      if (payment.type === "saida") return total + payment.amount; // Changed from subtraction to addition
       const adjustedAmount = payment.delivered ? payment.amount : payment.amount / 2;
       return total + adjustedAmount;
     }, 0);
@@ -49,7 +49,7 @@ const MotoboyPayments = () => {
     return payments
       .filter(payment => payment.date === today)
       .reduce((total, payment) => {
-        if (payment.type === "saida") return total - payment.amount;
+        if (payment.type === "saida") return total + payment.amount; // Changed from subtraction to addition
         const adjustedAmount = payment.delivered ? payment.amount : payment.amount / 2;
         return total + adjustedAmount;
       }, 0);
@@ -104,7 +104,7 @@ const MotoboyPayments = () => {
                     <h3 className="font-medium">
                       {payment.type === "saida" ? (
                         <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-muted-foreground" />
+                          <CreditCard className="w-4 h-4 text-primary" />
                           <span>Saída</span>
                         </div>
                       ) : (
@@ -135,8 +135,8 @@ const MotoboyPayments = () => {
                           </span>
                         </>
                       ) : (
-                        <span className="font-medium text-destructive">
-                          -{formatCurrency(payment.amount)}
+                        <span className="font-medium text-primary">
+                          {formatCurrency(payment.amount)}
                         </span>
                       )}
                     </div>
