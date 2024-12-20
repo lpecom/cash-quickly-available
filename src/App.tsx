@@ -12,6 +12,7 @@ import MobileNav from "./components/MobileNav";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminDrivers from "./pages/admin/AdminDrivers";
+import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLayout from "./layouts/AdminLayout";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="drivers" element={<AdminDrivers />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Routes>
         <MobileNav />
