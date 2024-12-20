@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, CheckCircle, XCircle, Navigation } from "lucide-react";
+import { Package, MapPin, Navigation } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 
@@ -32,13 +32,10 @@ const MotoboyDashboard = () => {
   const [recommendedOrder, setRecommendedOrder] = useState<typeof mockOrders[0] | null>(null);
 
   useEffect(() => {
-    // Get current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setCurrentLocation(position);
-          // In a real app, we would use the position to calculate the nearest order
-          // For now, we'll just use the first pending order
           const nextOrder = orders.find((order) => order.status === "pending");
           setRecommendedOrder(nextOrder || null);
         },
@@ -54,19 +51,15 @@ const MotoboyDashboard = () => {
     }
   }, [orders]);
 
-  const updateOrderStatus = (orderId: string, newStatus: "delivered" | "not_delivered") => {
+  const startDelivery = (orderId: string) => {
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
+        order.id === orderId ? { ...order, status: "in_progress" } : order
       )
     );
 
-    const message = newStatus === "delivered" 
-      ? "Pedido marcado como entregue!"
-      : "Pedido não entregue";
-      
     toast({
-      title: message,
+      title: "Entrega iniciada!",
       description: `Pedido #${orderId}`,
     });
   };
@@ -105,7 +98,7 @@ const MotoboyDashboard = () => {
               </div>
               <Button 
                 className="w-full mt-2"
-                onClick={() => updateOrderStatus(recommendedOrder.id, "delivered")}
+                onClick={() => startDelivery(recommendedOrder.id)}
               >
                 <Navigation className="w-4 h-4 mr-2" />
                 Iniciar Entrega
@@ -126,9 +119,9 @@ const MotoboyDashboard = () => {
                   <p className="text-sm text-muted-foreground">{order.customer}</p>
                 </div>
                 <Badge
-                  variant={order.status === "delivered" ? "default" : "secondary"}
+                  variant={order.status === "in_progress" ? "default" : "secondary"}
                 >
-                  {order.status === "delivered" ? "Entregue" : "Pendente"}
+                  {order.status === "in_progress" ? "Em andamento" : "Pendente"}
                 </Badge>
               </div>
 
@@ -142,28 +135,15 @@ const MotoboyDashboard = () => {
                 <span>{order.items}</span>
               </div>
 
-              <div className="flex gap-2">
+              {order.status === "pending" && (
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => updateOrderStatus(order.id, "delivered")}
-                  disabled={order.status === "delivered"}
+                  className="w-full"
+                  onClick={() => startDelivery(order.id)}
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Entregue
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Iniciar Entrega
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => updateOrderStatus(order.id, "not_delivered")}
-                  disabled={order.status === "delivered"}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Não entregue
-                </Button>
-              </div>
+              )}
             </div>
           ))}
         </div>
