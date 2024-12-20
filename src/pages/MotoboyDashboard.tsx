@@ -13,7 +13,12 @@ const mockOrders = [
     amount: "R$ 150,00",
     items: "2 items",
     distance: "1.2km",
-    phone: "5511999999999"
+    phone: "5511999999999",
+    products: [
+      { name: "X-Burger", quantity: 1 },
+      { name: "Batata Frita", quantity: 1 }
+    ],
+    deliveryInstructions: "Entregar na portaria. Não tem interfone."
   },
   {
     id: "2",
@@ -23,7 +28,11 @@ const mockOrders = [
     amount: "R$ 89,90",
     items: "1 item",
     distance: "0.8km",
-    phone: "5511888888888"
+    phone: "5511888888888",
+    products: [
+      { name: "Pizza Grande Margherita", quantity: 1 }
+    ],
+    deliveryInstructions: "Apartamento 42, Bloco B"
   },
 ];
 

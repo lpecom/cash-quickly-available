@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, MessageCircle } from "lucide-react";
+import { MapPin, Navigation, MessageCircle, Package, ScrollText } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { DeliveryButtons } from "./DeliveryButtons";
 
@@ -14,6 +14,8 @@ interface OrderCardProps {
     items: string;
     phone: string;
     isRecommended?: boolean;
+    products?: Array<{ name: string; quantity: number }>;
+    deliveryInstructions?: string;
   };
   onStartDelivery: (orderId: string) => void;
   onContactCustomer: (phone: string, orderId: string) => void;
@@ -48,6 +50,32 @@ export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCa
         <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
         <span className="flex-1">{order.address}</span>
       </div>
+
+      {order.products && order.products.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Package className="w-4 h-4 text-muted-foreground" />
+            <span>Produtos</span>
+          </div>
+          <ul className="text-sm space-y-1 pl-6">
+            {order.products.map((product, index) => (
+              <li key={index}>
+                {product.quantity}x {product.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {order.deliveryInstructions && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <ScrollText className="w-4 h-4 text-muted-foreground" />
+            <span>Instruções</span>
+          </div>
+          <p className="text-sm text-muted-foreground pl-6">{order.deliveryInstructions}</p>
+        </div>
+      )}
 
       <div className="flex items-center justify-between text-sm">
         <span>{order.amount}</span>
