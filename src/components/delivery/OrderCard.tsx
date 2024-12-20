@@ -26,7 +26,6 @@ export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCa
     <div
       className={`
         ${order.isRecommended ? "bg-primary/10" : "bg-card"}
-        ${order.status === "in_progress" ? "animate-border relative" : ""}
         rounded-lg shadow-sm p-4 space-y-3 relative
         before:absolute before:inset-0 before:rounded-lg before:p-[2px]
         before:bg-gradient-to-r before:from-green-400 before:via-primary before:to-green-600
