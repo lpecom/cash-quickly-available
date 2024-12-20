@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, ChevronRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Link } from "react-router-dom";
 
 const payments = [
   {
@@ -37,19 +38,22 @@ const MotoboyPayments = () => {
         <ScrollArea className="h-[calc(100vh-180px)]">
           <div className="space-y-4">
             {payments.map((payment) => (
-              <div
+              <Link
                 key={payment.id}
-                className="bg-card rounded-lg shadow-sm p-4 flex items-center justify-between"
+                to={`/order/${payment.orderId.replace("#", "")}`}
+                className="block bg-card rounded-lg shadow-sm p-4"
               >
-                <div>
-                  <h3 className="font-medium">Pedido {payment.orderId}</h3>
-                  <p className="text-sm text-muted-foreground">{payment.date}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">Pedido {payment.orderId}</h3>
+                    <p className="text-sm text-muted-foreground">{payment.date}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">{payment.amount}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{payment.amount}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         </ScrollArea>

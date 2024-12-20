@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import MotoboyDashboard from "./pages/MotoboyDashboard";
 import MotoboyPayments from "./pages/MotoboyPayments";
 import MotoboySales from "./pages/MotoboySales";
+import OrderDetails from "./pages/OrderDetails";
 import MobileNav from "./components/MobileNav";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/motoboy" element={<MotoboyDashboard />} />
           <Route path="/motoboy/payments" element={<MotoboyPayments />} />
           <Route path="/motoboy/sales" element={<MotoboySales />} />
+          <Route path="/order/:orderId" element={<OrderDetails />} />
         </Routes>
         <MobileNav />
       </BrowserRouter>
