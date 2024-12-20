@@ -57,6 +57,15 @@ export default {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },
+      keyframes: {
+        "border-animate": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" }
+        }
+      },
+      animation: {
+        "border": "border-animate 3s linear infinite",
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],
