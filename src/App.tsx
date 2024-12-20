@@ -9,6 +9,10 @@ import MotoboyPayments from "./pages/MotoboyPayments";
 import MotoboySales from "./pages/MotoboySales";
 import OrderDetails from "./pages/OrderDetails";
 import MobileNav from "./components/MobileNav";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminDrivers from "./pages/admin/AdminDrivers";
+import AdminLayout from "./layouts/AdminLayout";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +28,13 @@ const App = () => (
           <Route path="/motoboy/payments" element={<MotoboyPayments />} />
           <Route path="/motoboy/sales" element={<MotoboySales />} />
           <Route path="/order/:orderId" element={<OrderDetails />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="drivers" element={<AdminDrivers />} />
+          </Route>
         </Routes>
         <MobileNav />
       </BrowserRouter>
