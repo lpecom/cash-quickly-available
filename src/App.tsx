@@ -12,7 +12,9 @@ import MobileNav from "./components/MobileNav";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetails from "./pages/admin/AdminOrderDetails";
-import AdminDrivers from "./pages/admin/AdminDrivers";
+import AdminDriversList from "./pages/admin/AdminDriversList";
+import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
+import AdminFinance from "./pages/admin/AdminFinance";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLayout from "./layouts/AdminLayout";
@@ -37,7 +39,9 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:orderId" element={<AdminOrderDetails />} />
-            <Route path="drivers" element={<AdminDrivers />} />
+            <Route path="drivers" element={<AdminDriversList />} />
+            <Route path="drivers/:driverId" element={<AdminDriverDetails />} />
+            <Route path="finance" element={<AdminFinance />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
