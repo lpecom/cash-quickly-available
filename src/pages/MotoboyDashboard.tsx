@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/use-toast";
 import { Package, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 // Temporary mock data - replace with real API data later
 const mockOrders = [
@@ -53,24 +53,22 @@ const MotoboyDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary p-8">
+    <div className="min-h-screen bg-secondary p-4 pb-20 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Painel do Motoboy</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">Entregas</h1>
             <p className="text-muted-foreground mt-1">
               Gerencie suas entregas do dia
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="px-4 py-2">
-              <Package className="w-4 h-4 mr-2" />
-              {orders.length} entregas pendentes
-            </Badge>
-          </div>
+          <Badge variant="outline" className="px-4 py-2">
+            <Package className="w-4 h-4 mr-2" />
+            {orders.length} entregas pendentes
+          </Badge>
         </div>
 
-        <div className="bg-card rounded-lg shadow-sm">
+        <div className="bg-card rounded-lg shadow-sm overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -111,7 +109,7 @@ const MotoboyDashboard = () => {
                         disabled={order.status === "delivered"}
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Entregue
+                        <span className="hidden md:inline">Entregue</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -121,7 +119,7 @@ const MotoboyDashboard = () => {
                         disabled={order.status === "delivered"}
                       >
                         <XCircle className="w-4 h-4" />
-                        Não entregue
+                        <span className="hidden md:inline">Não entregue</span>
                       </Button>
                     </div>
                   </TableCell>

@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import MotoboyDashboard from "./pages/MotoboyDashboard";
+import MotoboyPayments from "./pages/MotoboyPayments";
+import MotoboySales from "./pages/MotoboySales";
+import MobileNav from "./components/MobileNav";
 
 const queryClient = new QueryClient();
 
@@ -17,7 +20,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/motoboy" element={<MotoboyDashboard />} />
+          <Route path="/motoboy/payments" element={<MotoboyPayments />} />
+          <Route path="/motoboy/sales" element={<MotoboySales />} />
         </Routes>
+        <MobileNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
