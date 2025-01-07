@@ -1,4 +1,4 @@
-import { Home, DollarSign, ShoppingCart } from "lucide-react";
+import { Home, DollarSign, ShoppingCart, LayoutDashboard } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const MobileNav = () => {
@@ -15,6 +15,15 @@ const MobileNav = () => {
         >
           <Home className="w-6 h-6" />
           <span className="text-xs mt-1">Entregas</span>
+        </Link>
+        <Link
+          to="/motoboy/dashboard"
+          className={`flex flex-col items-center ${
+            location.pathname === "/motoboy/dashboard" ? "text-primary" : "text-gray-500"
+          }`}
+        >
+          <LayoutDashboard className="w-6 h-6" />
+          <span className="text-xs mt-1">Dashboard</span>
         </Link>
         <Link
           to="/motoboy/payments"
