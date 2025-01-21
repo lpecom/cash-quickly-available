@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { Product } from "@/types/order";
+import { useNavigate } from "react-router-dom";
 
 // Mock data - replace with real data later
 const mockProducts: Product[] = [
@@ -39,6 +40,7 @@ const mockProducts: Product[] = [
 
 const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const filteredProducts = mockProducts.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -83,7 +85,11 @@ const AdminProducts = () => {
                 <TableCell>{product.quantity}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/admin/products/${product.id}`)}
+                    >
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm">

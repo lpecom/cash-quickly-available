@@ -17,6 +17,7 @@ import AdminDriversList from "./pages/admin/AdminDriversList";
 import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminProductDetails from "./pages/admin/AdminProductDetails";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLayout from "./layouts/AdminLayout";
 
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="drivers/:driverId" element={<AdminDriverDetails />} />
             <Route path="finance" element={<AdminFinance />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="products/:productId" element={<AdminProductDetails />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Routes>
