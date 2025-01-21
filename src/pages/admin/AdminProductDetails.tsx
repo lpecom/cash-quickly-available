@@ -43,6 +43,8 @@ const productSchema = z.object({
   status: z.enum(["active", "inactive"]),
 });
 
+type ProductFormValues = z.infer<typeof productSchema>;
+
 const AdminProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ const AdminProductDetails = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // In a real app, fetch product data based on productId
-  const mockProduct = {
+  const mockProduct: ProductFormValues = {
     name: "Produto 1",
     description: "Descrição do produto 1",
     price: "29.90",
@@ -58,10 +60,10 @@ const AdminProductDetails = () => {
     category: "category1",
     sku: "SKU123",
     minStock: "10",
-    status: "active",
+    status: "active" as const,  // Explicitly type this as "active" | "inactive"
   };
 
-  const form = useForm<z.infer<typeof productSchema>>({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: mockProduct,
   });
