@@ -108,8 +108,15 @@ const MotoboyDashboard = () => {
             <OrderCard
               key={order.id}
               order={{
-                ...order,
-                isRecommended: false
+                id: order.id,
+                customer: order.customer_name,
+                address: order.address,
+                status: order.status,
+                amount: `R$ ${order.total.toFixed(2)}`,
+                items: "Ver produtos",
+                phone: order.phone,
+                isRecommended: false,
+                deliveryInstructions: order.delivery_instructions
               }}
               onStartDelivery={startDelivery}
               onContactCustomer={contactCustomer}
