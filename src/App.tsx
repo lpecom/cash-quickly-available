@@ -2,8 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import Index from "./pages/Index";
+import AuthPage from "./pages/auth/AuthPage";
 import MotoboyDashboard from "./pages/MotoboyDashboard";
 import MotoboyDashboardStats from "./pages/MotoboyDashboardStats";
 import MotoboyPayments from "./pages/MotoboyPayments";
@@ -23,6 +27,66 @@ import AdminLayout from "./layouts/AdminLayout";
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children, requiredRole = null }: { children: React.ReactNode; requiredRole?: "admin" | "motoboy" | null }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check current auth status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        // Fetch user role
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            setUserRole(data?.role ?? null);
+            setLoading(false);
+          });
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            setUserRole(data?.role ?? null);
+          });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -31,14 +95,59 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/motoboy" element={<MotoboyDashboard />} />
-          <Route path="/motoboy/dashboard" element={<MotoboyDashboardStats />} />
-          <Route path="/motoboy/payments" element={<MotoboyPayments />} />
-          <Route path="/motoboy/sales" element={<MotoboySales />} />
-          <Route path="/order/:orderId" element={<OrderDetails />} />
+          <Route path="/auth" element={<AuthPage />} />
           
+          {/* Motoboy Routes */}
+          <Route
+            path="/motoboy"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/dashboard"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyDashboardStats />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/payments"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyPayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/sales"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboySales />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/order/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:orderId" element={<AdminOrderDetails />} />
