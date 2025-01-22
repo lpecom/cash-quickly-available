@@ -1,90 +1,91 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { OrderCard } from "@/components/delivery/OrderCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-const mockOrders = [
-  {
-    id: "1",
-    customer: "João Silva",
-    address: "Rua Augusta, 1000, São Paulo",
-    status: "pending",
-    amount: "R$ 150,00",
-    items: "2 items",
-    distance: "1.2km",
-    phone: "5511999999999",
-    products: [
-      { name: "X-Burger", quantity: 1 },
-      { name: "Batata Frita", quantity: 1 }
-    ],
-    deliveryInstructions: "Entregar na portaria. Não tem interfone."
-  },
-  {
-    id: "2",
-    customer: "Maria Santos",
-    address: "Av. Paulista, 500, São Paulo",
-    status: "pending",
-    amount: "R$ 89,90",
-    items: "1 item",
-    distance: "0.8km",
-    phone: "5511888888888",
-    products: [
-      { name: "Pizza Grande Margherita", quantity: 1 }
-    ],
-    deliveryInstructions: "Apartamento 42, Bloco B"
-  },
-];
+interface Order {
+  id: string;
+  customer_name: string;
+  address: string;
+  phone: string;
+  status: string;
+  total: number;
+  delivery_instructions?: string;
+}
 
 const MotoboyDashboard = () => {
-  const [orders, setOrders] = useState(mockOrders);
   const [currentLocation, setCurrentLocation] = useState<GeolocationPosition | null>(null);
-  const [recommendedOrderId, setRecommendedOrderId] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Fetch orders assigned to the current motoboy
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['motoboy-assigned-orders'],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('driver_id', user.user.id)
+        .in('status', ['pending', 'in_progress'])
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching orders:", error);
+        throw error;
+      }
+
+      return data as Order[];
+    }
+  });
+
+  // Get current location for navigation
+  useState(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setCurrentLocation(position);
-          const nextOrder = orders.find((order) => order.status === "pending");
-          if (nextOrder) {
-            setRecommendedOrderId(nextOrder.id);
-          }
         },
         (error) => {
           console.error("Error getting location:", error);
-          toast({
-            title: "Erro ao obter localização",
-            description: "Por favor, ative a localização do seu dispositivo",
-            variant: "destructive",
-          });
+          toast.error("Por favor, ative a localização do seu dispositivo");
         }
       );
     }
-  }, [orders]);
+  }, []);
 
-  const startDelivery = (orderId: string) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: "in_progress" } : order
-      )
-    );
+  const startDelivery = async (orderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'in_progress' })
+        .eq('id', orderId);
 
-    toast({
-      title: "Entrega iniciada!",
-      description: `Pedido #${orderId}`,
-    });
+      if (error) throw error;
+
+      toast.success("Entrega iniciada!");
+    } catch (error) {
+      console.error("Error starting delivery:", error);
+      toast.error("Erro ao iniciar entrega");
+    }
   };
 
-  const contactCustomer = (phone: string, orderId: string) => {
+  const contactCustomer = (phone: string) => {
     const whatsappUrl = `https://wa.me/${phone}`;
     window.open(whatsappUrl, '_blank');
-    
-    toast({
-      title: "Redirecionando para WhatsApp",
-      description: "Você será redirecionado para conversar com o cliente",
-    });
+    toast("Redirecionando para WhatsApp");
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-secondary p-4 flex items-center justify-center">
+        <p>Carregando entregas...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary p-4 pb-20">
@@ -108,12 +109,18 @@ const MotoboyDashboard = () => {
               key={order.id}
               order={{
                 ...order,
-                isRecommended: order.id === recommendedOrderId
+                isRecommended: false
               }}
               onStartDelivery={startDelivery}
               onContactCustomer={contactCustomer}
             />
           ))}
+
+          {orders.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhuma entrega pendente no momento
+            </div>
+          )}
         </div>
       </div>
     </div>
