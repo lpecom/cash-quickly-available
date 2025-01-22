@@ -27,7 +27,7 @@ import AdminLayout from "./layouts/AdminLayout";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children, requiredRole = null }: { children: React.ReactNode; requiredRole?: "admin" | "motoboy" | null }) => {
+const ProtectedRoute = ({ children, requiredRole = null }: { children: React.ReactNode; requiredRole?: "admin" | "motoboy" | "superadmin" | null }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,13 @@ const ProtectedRoute = ({ children, requiredRole = null }: { children: React.Rea
           .select("role")
           .eq("id", session.user.id)
           .single()
-          .then(({ data }) => {
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching user role:", error);
+              setLoading(false);
+              return;
+            }
+            console.log("User role:", data?.role);
             setUserRole(data?.role ?? null);
             setLoading(false);
           });
@@ -63,7 +69,12 @@ const ProtectedRoute = ({ children, requiredRole = null }: { children: React.Rea
           .select("role")
           .eq("id", session.user.id)
           .single()
-          .then(({ data }) => {
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching user role:", error);
+              return;
+            }
+            console.log("User role changed:", data?.role);
             setUserRole(data?.role ?? null);
           });
       }
@@ -80,7 +91,8 @@ const ProtectedRoute = ({ children, requiredRole = null }: { children: React.Rea
     return <Navigate to="/auth" replace />;
   }
 
-  if (requiredRole && userRole !== requiredRole) {
+  if (requiredRole && userRole !== requiredRole && userRole !== 'superadmin') {
+    console.log("Access denied. Required role:", requiredRole, "User role:", userRole);
     return <Navigate to="/" replace />;
   }
 
