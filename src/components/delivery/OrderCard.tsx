@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Navigation, MessageCircle, Package, ScrollText, LoaderCircle } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { DeliveryButtons } from "./DeliveryButtons";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrderCardProps {
   order: {
@@ -16,12 +17,33 @@ interface OrderCardProps {
     isRecommended?: boolean;
     products?: Array<{ name: string; quantity: number }>;
     deliveryInstructions?: string;
+    accepted_at?: string | null;
   };
   onStartDelivery: (orderId: string) => void;
   onContactCustomer: (phone: string, orderId: string) => void;
 }
 
 export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCardProps) => {
+  const handleAcceptOrder = async () => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'on_route',
+          driver_id: (await supabase.auth.getUser()).data.user?.id,
+          accepted_at: new Date().toISOString()
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
+      onStartDelivery(order.id);
+      toast.success("Pedido aceito com sucesso!");
+    } catch (error) {
+      console.error('Error accepting order:', error);
+      toast.error("Erro ao aceitar pedido");
+    }
+  };
+
   return (
     <div
       className={`
@@ -95,23 +117,18 @@ export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCa
         {order.status === "pending" ? (
           <Button
             className="w-full"
-            onClick={() => onStartDelivery(order.id)}
+            onClick={handleAcceptOrder}
           >
             <Navigation className="w-4 h-4 mr-2" />
             Iniciar Entrega
           </Button>
         ) : (
-          <>
-            <Button
-              className="w-full"
-              variant="outline"
-              onClick={() => onContactCustomer(order.phone, order.id)}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Avisar Cliente
-            </Button>
-            <DeliveryButtons orderId={order.id} />
-          </>
+          <DeliveryButtons 
+            orderId={order.id}
+            phone={order.phone}
+            address={order.address}
+            acceptedAt={order.accepted_at}
+          />
         )}
       </div>
     </div>

@@ -53,11 +53,15 @@ export type Database = {
       }
       orders: {
         Row: {
+          accepted_at: string | null
           address: string
           created_at: string
           customer_id: string | null
           customer_name: string
+          delivery_completed_at: string | null
+          delivery_failure_reason: string | null
           delivery_instructions: string | null
+          delivery_started_at: string | null
           driver_id: string | null
           id: string
           phone: string
@@ -66,11 +70,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           address: string
           created_at?: string
           customer_id?: string | null
           customer_name: string
+          delivery_completed_at?: string | null
+          delivery_failure_reason?: string | null
           delivery_instructions?: string | null
+          delivery_started_at?: string | null
           driver_id?: string | null
           id?: string
           phone: string
@@ -79,11 +87,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           address?: string
           created_at?: string
           customer_id?: string | null
           customer_name?: string
+          delivery_completed_at?: string | null
+          delivery_failure_reason?: string | null
           delivery_instructions?: string | null
+          delivery_started_at?: string | null
           driver_id?: string | null
           id?: string
           phone?: string
