@@ -29,7 +29,6 @@ export function OrdersMenu() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Determine the active tab based on the current path
   const activeTab = menuItems.find((item) => item.path === location.pathname)?.path || menuItems[0].path;
 
   return (

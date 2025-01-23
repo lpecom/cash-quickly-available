@@ -18,21 +18,6 @@ interface OrderFiltersProps {
 export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
   const [search, setSearch] = useState("");
 
-  const getStatusGroup = (status: OrderStatus) => {
-    switch (status) {
-      case "pending":
-      case "confirmed":
-      case "on_route":
-        return "active";
-      case "delivered":
-        return "completed";
-      case "not_delivered":
-        return "rescheduled";
-      default:
-        return "all";
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -73,7 +58,6 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
                   onFiltersChange({ status: "all" });
                   return;
               }
-              // For now, we'll just use the first status as we update the filtering logic
               onFiltersChange({ status: statuses[0] });
             }}
           >

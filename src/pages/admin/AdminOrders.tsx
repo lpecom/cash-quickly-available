@@ -81,7 +81,7 @@ const AdminOrders = () => {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Erro ao buscar pedidos:', error);
         throw error;
       }
       
@@ -95,7 +95,7 @@ const AdminOrders = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-4 space-y-6">
-        <div>Loading orders...</div>
+        <div>Carregando pedidos...</div>
       </div>
     );
   }
@@ -139,13 +139,13 @@ const AdminOrders = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>ID do Pedido</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Itens</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -155,7 +155,7 @@ const AdminOrders = () => {
                   {order.id.slice(0, 8)}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(order.created_at), "MMM d, yyyy h:mm a")}
+                  {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
                 </TableCell>
                 <TableCell>
                   <div>
@@ -177,7 +177,7 @@ const AdminOrders = () => {
                 <TableCell className="text-right">
                   <Link to={`/admin/orders/${order.id}`}>
                     <Button variant="ghost" size="sm">
-                      View
+                      Visualizar
                     </Button>
                   </Link>
                 </TableCell>
