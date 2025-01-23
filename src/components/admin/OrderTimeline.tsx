@@ -36,34 +36,59 @@ const getEventIcon = (type: TimelineEvent["type"]) => {
   }
 };
 
+const getStatusColor = (status: OrderStatus) => {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-500";
+    case "confirmed":
+      return "bg-blue-500";
+    case "on_route":
+      return "bg-purple-500";
+    case "delivered":
+      return "bg-green-500";
+    case "not_delivered":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
 export const OrderTimeline = ({ events }: OrderTimelineProps) => {
+  const sortedEvents = [...events].sort((a, b) => 
+    b.timestamp.getTime() - a.timestamp.getTime()
+  );
+
   return (
-    <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-      <div className="space-y-8">
-        {events.map((event) => (
+    <ScrollArea className="h-[400px] pr-4">
+      <div className="relative space-y-6">
+        {sortedEvents.map((event, index) => (
           <div key={event.id} className="relative pl-8">
-            <div className="absolute left-0 top-1 h-4 w-4 rounded-full border bg-background flex items-center justify-center">
+            {/* Timeline line */}
+            {index !== sortedEvents.length - 1 && (
+              <div className="absolute left-[15px] top-6 bottom-0 w-px bg-border" />
+            )}
+            
+            {/* Event dot */}
+            <div className={`absolute left-0 top-1 h-8 w-8 rounded-full ${event.status ? getStatusColor(event.status) : 'bg-gray-500'} flex items-center justify-center text-white`}>
               {event.type === "status_change" && event.status
                 ? getStatusIcon(event.status)
                 : getEventIcon(event.type)}
             </div>
+
+            {/* Event content */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium leading-none">
                   {event.description}
                 </p>
                 {event.status && (
-                  <Badge variant="outline">
-                    {event.status === "pending" && "Pendente"}
-                    {event.status === "confirmed" && "Confirmado"}
-                    {event.status === "on_route" && "Em rota"}
-                    {event.status === "delivered" && "Entregue"}
-                    {event.status === "not_delivered" && "Não entregue"}
+                  <Badge variant="outline" className="capitalize">
+                    {event.status.replace('_', ' ')}
                   </Badge>
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {format(event.timestamp, "dd/MM/yyyy 'às' HH:mm")}
+                {format(event.timestamp, "PPp")}
                 {event.agent && ` • ${event.agent}`}
               </p>
             </div>
