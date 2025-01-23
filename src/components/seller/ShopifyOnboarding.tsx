@@ -13,6 +13,10 @@ interface OnboardingFormValues {
   shopify_app_id: string;
   shopify_app_secret: string;
   shopify_theme_id: string;
+  shopify_settings: {
+    store_name: string;
+    location_id: string;
+  };
 }
 
 export function ShopifyOnboarding() {
@@ -24,6 +28,10 @@ export function ShopifyOnboarding() {
       shopify_app_id: "",
       shopify_app_secret: "",
       shopify_theme_id: "",
+      shopify_settings: {
+        store_name: "",
+        location_id: "",
+      }
     },
   });
 
@@ -38,6 +46,7 @@ export function ShopifyOnboarding() {
           shopify_app_id: values.shopify_app_id,
           shopify_app_secret: values.shopify_app_secret,
           shopify_theme_id: values.shopify_theme_id,
+          shopify_settings: values.shopify_settings,
           shopify_onboarding_status: 'completed',
         })
         .eq('user_id', user.id);
@@ -96,7 +105,7 @@ export function ShopifyOnboarding() {
               Step 2: Configure App Settings
             </CardTitle>
             <CardDescription>
-              Enter your Shopify app credentials
+              Enter your Shopify app credentials and store details
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -129,6 +138,38 @@ export function ShopifyOnboarding() {
                       </FormControl>
                       <FormDescription>
                         The secret key from your app's API credentials
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="shopify_settings.store_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Store Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="your-store" />
+                      </FormControl>
+                      <FormDescription>
+                        The name of your Shopify store (e.g., your-store.myshopify.com)
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="shopify_settings.location_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location ID</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter your Shopify location ID" />
+                      </FormControl>
+                      <FormDescription>
+                        The ID of the location where orders will be fulfilled
                       </FormDescription>
                     </FormItem>
                   )}
