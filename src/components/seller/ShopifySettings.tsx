@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
+interface ShopifySettings {
+  store_name: string;
+  location_id: string;
+}
+
 interface ShopifySettingsFormValues {
   shopify_enabled: boolean;
-  shopify_settings: {
-    store_name: string;
-    location_id: string;
-  };
+  shopify_settings: ShopifySettings;
 }
 
 export function ShopifySettings() {
@@ -39,7 +41,7 @@ export function ShopifySettings() {
   const form = useForm<ShopifySettingsFormValues>({
     defaultValues: {
       shopify_enabled: sellerProfile?.shopify_enabled ?? false,
-      shopify_settings: sellerProfile?.shopify_settings ?? {
+      shopify_settings: (sellerProfile?.shopify_settings as ShopifySettings) ?? {
         store_name: '',
         location_id: '',
       },
