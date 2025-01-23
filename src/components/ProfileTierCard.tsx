@@ -6,13 +6,36 @@ interface TierInfo {
   name: string;
   icon: JSX.Element;
   minDeliveries: number;
-  commission: number;
+  baseRate: number;
+  successRate: number;
+  refusalRate: number;
 }
 
 const tiers: TierInfo[] = [
-  { name: "Iniciante", icon: <Star className="w-5 h-5" />, minDeliveries: 0, commission: 10 },
-  { name: "Prata", icon: <Award className="w-5 h-5" />, minDeliveries: 50, commission: 12 },
-  { name: "Ouro", icon: <Crown className="w-5 h-5" />, minDeliveries: 100, commission: 15 },
+  { 
+    name: "Iniciante", 
+    icon: <Star className="w-5 h-5" />, 
+    minDeliveries: 0, 
+    baseRate: 20,
+    successRate: 10,
+    refusalRate: 2
+  },
+  { 
+    name: "Prata", 
+    icon: <Award className="w-5 h-5" />, 
+    minDeliveries: 50, 
+    baseRate: 50,
+    successRate: 15,
+    refusalRate: 5
+  },
+  { 
+    name: "Ouro", 
+    icon: <Crown className="w-5 h-5" />, 
+    minDeliveries: 100, 
+    baseRate: 70,
+    successRate: 20,
+    refusalRate: 7
+  },
 ];
 
 interface ProfileTierCardProps {
@@ -41,6 +64,13 @@ export function ProfileTierCard({ totalDeliveries }: ProfileTierCardProps) {
     return Math.min(Math.max(progress, 0), 100);
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-2">
       <div className="space-y-4">
@@ -51,9 +81,17 @@ export function ProfileTierCard({ totalDeliveries }: ProfileTierCardProps) {
             </div>
             <div>
               <h3 className="font-semibold text-lg">{currentTier.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                Comissão atual: {currentTier.commission}%
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Saída: {formatCurrency(currentTier.baseRate)}
+                </p>
+                <p className="text-sm text-green-600">
+                  Entrega efetuada: {formatCurrency(currentTier.successRate)}
+                </p>
+                <p className="text-sm text-red-600">
+                  Entrega recusada: {formatCurrency(currentTier.refusalRate)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -74,7 +112,7 @@ export function ProfileTierCard({ totalDeliveries }: ProfileTierCardProps) {
                 </div>
               </div>
               <div className="text-sm text-primary">
-                +{nextTier.commission - currentTier.commission}% comissão
+                +{formatCurrency(nextTier.baseRate - currentTier.baseRate)} saída
                 <ChevronRight className="w-4 h-4 inline ml-1" />
               </div>
             </div>
