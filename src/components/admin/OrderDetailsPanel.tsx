@@ -23,7 +23,6 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<Order["status"]>("pending");
 
-  // Sync status with order prop when it changes
   useEffect(() => {
     if (order?.status) {
       setCurrentStatus(order.status);
@@ -68,7 +67,6 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status do pedido");
-      // Revert status on error
       setCurrentStatus(order.status);
     } finally {
       setIsUpdating(false);
@@ -114,11 +112,11 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
   ];
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto">
+    <div className="space-y-6 max-w-[1200px] mx-auto p-6 bg-gray-50/50">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-5">
         <div className="flex items-center gap-4">
-          <Link to="/admin/orders" className="text-gray-500 hover:text-gray-700">
+          <Link to="/admin/orders" className="text-gray-500 hover:text-gray-700 transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
@@ -158,7 +156,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
       <div className="grid grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="col-span-2 space-y-6">
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border-0 shadow-sm bg-white">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
                 <User className="h-5 w-5 text-gray-500" />
@@ -170,7 +168,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border-0 shadow-sm bg-white">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
                 <Package className="h-5 w-5 text-gray-500" />
@@ -182,7 +180,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border-0 shadow-sm bg-white">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
                 <DollarSign className="h-5 w-5 text-gray-500" />
@@ -210,7 +208,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border-0 shadow-sm bg-white">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
                 <MapPin className="h-5 w-5 text-gray-500" />
@@ -222,7 +220,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border-0 shadow-sm bg-white">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
                 <Clock className="h-5 w-5 text-gray-500" />

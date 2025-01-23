@@ -78,7 +78,7 @@ export const OrderTimeline = ({ events }: OrderTimelineProps) => {
             </div>
 
             {/* Event content */}
-            <div className="space-y-1 bg-card p-4 rounded-lg shadow-sm border">
+            <div className="space-y-1 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium leading-none">
                   {event.description}
