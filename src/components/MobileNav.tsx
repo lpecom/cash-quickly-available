@@ -1,4 +1,4 @@
-import { Home, DollarSign, ShoppingCart } from "lucide-react";
+import { Package, DollarSign, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const MobileNav = () => {
@@ -13,17 +13,17 @@ const MobileNav = () => {
             location.pathname === "/entregas" ? "text-primary" : "text-gray-500"
           }`}
         >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="text-xs mt-1">Entregas</span>
+          <Package className="w-6 h-6" />
+          <span className="text-xs mt-1">Pedidos</span>
         </Link>
         <Link
-          to="/vendas"
+          to="/coletas"
           className={`flex flex-col items-center ${
-            location.pathname === "/vendas" ? "text-primary" : "text-gray-500"
+            location.pathname === "/coletas" ? "text-primary" : "text-gray-500"
           }`}
         >
-          <Home className="w-6 h-6" />
-          <span className="text-xs mt-1">Pedidos</span>
+          <Package className="w-6 h-6" />
+          <span className="text-xs mt-1">Coletas</span>
         </Link>
         <Link
           to="/pagamentos"
@@ -33,6 +33,15 @@ const MobileNav = () => {
         >
           <DollarSign className="w-6 h-6" />
           <span className="text-xs mt-1">Pagamentos</span>
+        </Link>
+        <Link
+          to="/perfil"
+          className={`flex flex-col items-center ${
+            location.pathname === "/perfil" ? "text-primary" : "text-gray-500"
+          }`}
+        >
+          <User className="w-6 h-6" />
+          <span className="text-xs mt-1">Perfil</span>
         </Link>
       </div>
     </div>
