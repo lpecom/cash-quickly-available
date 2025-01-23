@@ -61,7 +61,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [] as ProductVariation[],
+      variations: [] as Array<{ name: string; options: string }>,
       stock: {},
     },
   });
@@ -176,17 +176,14 @@ const CreateProduct = () => {
       name: "",
       options: "",
     };
-    form.setValue("variations", [...currentVariations, newVariation], {
-      shouldValidate: true
-    });
+    form.setValue("variations", [...currentVariations, newVariation]);
   };
 
   const removeVariation = (index: number) => {
     const currentVariations = form.getValues("variations");
     form.setValue(
       "variations", 
-      currentVariations.filter((_, i) => i !== index),
-      { shouldValidate: true }
+      currentVariations.filter((_, i) => i !== index)
     );
   };
 
@@ -307,7 +304,7 @@ const CreateProduct = () => {
                   </Button>
                 </div>
 
-                {form.watch("variations")?.map((_, index) => (
+                {form.watch("variations").map((_, index) => (
                   <VariationField
                     key={index}
                     form={form}
@@ -318,7 +315,7 @@ const CreateProduct = () => {
 
                 <StockMatrix
                   form={form}
-                  variations={form.watch("variations") || []}
+                  variations={form.watch("variations")}
                 />
               </div>
 
