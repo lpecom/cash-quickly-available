@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { MapPin, Timer, Truck } from "lucide-react";
+import { MapPin, Timer, Truck, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Checkout() {
   const { productId } = useParams();
+  const isMobile = useIsMobile();
   const [shippingMethod, setShippingMethod] = useState<"free" | "express">("free");
   const [formData, setFormData] = useState({
     fullName: "",
@@ -86,22 +88,156 @@ export default function Checkout() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300">
+        <Card className="w-[300px] h-[150px] flex items-center justify-center bg-white/95 backdrop-blur">
+          <CardContent>
+            <div className="animate-pulse flex flex-col items-center gap-4">
+              <div className="h-8 w-8 rounded-full bg-blue-200" />
+              <div className="h-4 w-32 rounded bg-blue-200" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!product) {
-    return <div className="flex items-center justify-center min-h-screen">Product not found</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300">
+        <Card className="w-[300px] h-[150px] flex items-center justify-center bg-white/95 backdrop-blur">
+          <CardContent>
+            <p className="text-lg text-gray-500">Product not found</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
+
+  const shippingCost = shippingMethod === "express" ? 3.99 : 0;
+  const totalCost = (product.price + shippingCost).toFixed(2);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Checkout</h1>
-          <p className="text-white/80">Complete your purchase</p>
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
+            <ShoppingBag className="h-8 w-8" />
+            Secure Checkout
+          </h1>
+          <p className="text-white/80">Complete your purchase securely</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
+          {!isMobile && (
+            <Card className="bg-white/95 backdrop-blur order-1 md:order-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      placeholder="Street address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="landmark">Landmark (Optional)</Label>
+                    <Input
+                      id="landmark"
+                      name="landmark"
+                      placeholder="Nearby landmark"
+                      value={formData.landmark}
+                      onChange={handleInputChange}
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        required
+                        className="bg-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        placeholder="State"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        required
+                        className="bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pincode">Pincode</Label>
+                    <Input
+                      id="pincode"
+                      name="pincode"
+                      placeholder="Postal code"
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full">
+                    Place Order
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-white/95 backdrop-blur">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
@@ -131,7 +267,7 @@ export default function Checkout() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="free" id="free" />
                     <Label htmlFor="free" className="flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
+                      <Truck className="h-4 w-4 text-primary" />
                       <div>
                         <p className="font-medium">Free shipping</p>
                         <p className="text-sm text-muted-foreground">3-5 business days</p>
@@ -141,7 +277,7 @@ export default function Checkout() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="express" id="express" />
                     <Label htmlFor="express" className="flex items-center gap-2">
-                      <Timer className="h-4 w-4" />
+                      <Timer className="h-4 w-4 text-primary" />
                       <div>
                         <p className="font-medium">Express shipping</p>
                         <p className="text-sm text-muted-foreground">1-2 business days</p>
@@ -163,113 +299,120 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span>Total</span>
-                  <span>
-                    R$ {(product.price + (shippingMethod === "express" ? 3.99 : 0)).toFixed(2)}
-                  </span>
+                  <span>R$ {totalCost}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Shipping Address
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    placeholder="Enter your full name"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="Enter your phone number"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    placeholder="Street address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="landmark">Landmark</Label>
-                  <Input
-                    id="landmark"
-                    name="landmark"
-                    placeholder="Nearby landmark"
-                    value={formData.landmark}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+          {isMobile && (
+            <Card className="bg-white/95 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="fullName">Full Name</Label>
                     <Input
-                      id="city"
-                      name="city"
-                      placeholder="City"
-                      value={formData.city}
+                      id="fullName"
+                      name="fullName"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
                       onChange={handleInputChange}
                       required
+                      className="bg-white"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
+                    <Label htmlFor="phone">Phone Number</Label>
                     <Input
-                      id="state"
-                      name="state"
-                      placeholder="State"
-                      value={formData.state}
+                      id="phone"
+                      name="phone"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
                       onChange={handleInputChange}
                       required
+                      className="bg-white"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="pincode">Pincode</Label>
-                  <Input
-                    id="pincode"
-                    name="pincode"
-                    placeholder="Postal code"
-                    value={formData.pincode}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      placeholder="Street address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
 
-                <Button type="submit" className="w-full">
-                  Place Order
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="landmark">Landmark (Optional)</Label>
+                    <Input
+                      id="landmark"
+                      name="landmark"
+                      placeholder="Nearby landmark"
+                      value={formData.landmark}
+                      onChange={handleInputChange}
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        required
+                        className="bg-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        placeholder="State"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        required
+                        className="bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pincode">Pincode</Label>
+                    <Input
+                      id="pincode"
+                      name="pincode"
+                      placeholder="Postal code"
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-white"
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full">
+                    Place Order - R$ {totalCost}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
