@@ -168,6 +168,7 @@ export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
           phone={order.phone}
           address={order.address}
           acceptedAt={order.accepted_at}
+          status={order.status}
         />
       )}
     </div>

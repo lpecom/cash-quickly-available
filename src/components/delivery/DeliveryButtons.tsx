@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Upload, Timer, Navigation, MessageCircle } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Timer, Navigation, MessageCircle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -33,33 +33,14 @@ interface DeliveryButtonsProps {
   phone: string;
   address: string;
   acceptedAt?: string | null;
+  status: string;
 }
 
-export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: DeliveryButtonsProps) => {
+export const DeliveryButtons = ({ orderId, phone, address, acceptedAt, status }: DeliveryButtonsProps) => {
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    if (acceptedAt) {
-      const interval = setInterval(() => {
-        const start = new Date(acceptedAt).getTime();
-        const now = new Date().getTime();
-        const diff = now - start;
-
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        setElapsedTime(
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        );
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [acceptedAt]);
 
   const handleDeliverySuccess = async () => {
     try {
@@ -80,7 +61,6 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
       }
 
       toast.success("Entrega confirmada com sucesso!");
-      // Redirect to dashboard or refresh orders list
       window.location.href = '/entregas';
     } catch (error) {
       console.error('Error updating order:', error);
@@ -116,11 +96,38 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
 
       toast.success("Status atualizado com sucesso");
       setSelectedReason("");
-      // Redirect to dashboard or refresh orders list
       window.location.href = '/entregas';
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error("Erro ao atualizar status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleReturnConfirmation = async () => {
+    try {
+      setIsUpdating(true);
+      console.log('Confirming return for order:', orderId);
+
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'returned',
+          delivery_completed_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error confirming return:', error);
+        throw error;
+      }
+
+      toast.success("Devolução confirmada com sucesso!");
+      window.location.href = '/coletas';
+    } catch (error) {
+      console.error('Error confirming return:', error);
+      toast.error("Erro ao confirmar devolução");
     } finally {
       setIsUpdating(false);
     }
@@ -133,11 +140,39 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
 
   const handleOpenMaps = () => {
     const encodedAddress = encodeURIComponent(address);
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-    const wazeUrl = `https://waze.com/ul?q=${encodedAddress}`;
     setShowConfirmDialog(true);
   };
 
+  // If the order is in "not_delivered" status, show only the return confirmation button
+  if (status === 'not_delivered') {
+    return (
+      <div className="space-y-4 mt-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full" variant="default">
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Confirmar Devolução
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmar Devolução</DialogTitle>
+              <DialogDescription>
+                Confirme que o pedido foi devolvido ao estabelecimento
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleReturnConfirmation} disabled={isUpdating}>
+                {isUpdating ? 'Atualizando...' : 'Confirmar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Regular delivery buttons for other statuses
   return (
     <div className="space-y-4 mt-4">
       {acceptedAt && (
