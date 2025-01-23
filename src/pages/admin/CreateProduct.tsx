@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,6 @@ import * as z from "zod";
 import { ArrowLeft, Box, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { VariationField } from "@/components/admin/products/VariationField";
 import { StockMatrix } from "@/components/admin/products/StockMatrix";
 
@@ -36,7 +35,7 @@ const productSchema = z.object({
   variations: z.array(z.object({
     name: z.string().min(1, "Nome da variação é obrigatório"),
     options: z.string().min(1, "Opções são obrigatórias"),
-  })).optional(),
+  })),
   stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
 });
 
@@ -55,7 +54,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [],
+      variations: [] as { name: string; options: string }[],
       stock: {},
     },
   });
@@ -166,12 +165,14 @@ const CreateProduct = () => {
     form.setValue("variations", [
       ...currentVariations,
       { name: "", options: "" },
-    ]);
+    ] as { name: string; options: string }[]);
   };
 
   const removeVariation = (index: number) => {
     const currentVariations = form.getValues("variations") || [];
-    form.setValue("variations", currentVariations.filter((_, i) => i !== index));
+    form.setValue("variations", 
+      currentVariations.filter((_, i) => i !== index) as { name: string; options: string }[]
+    );
   };
 
   if (isCheckingAuth) {
