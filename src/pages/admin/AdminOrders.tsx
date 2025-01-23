@@ -61,42 +61,30 @@ const AdminOrders = () => {
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
-      // If changing to confirmed, set loading state
-      if (newStatus === 'confirmed') {
-        setLoadingOrderId(orderId);
-      }
+      setLoadingOrderId(orderId);
+      console.log('Updating order status:', { orderId, newStatus }); // Debug log
 
       const { error } = await supabase
         .from('orders')
-        .update({ 
-          status: newStatus,
-          driver_id: newStatus === 'confirmed' ? null : undefined
-        })
+        .update({ status: newStatus })
         .eq('id', orderId);
 
       if (error) {
         console.error('Error updating order status:', error);
         toast.error('Failed to update order status');
-        setLoadingOrderId(null);
         return;
       }
 
-      // Show different success messages based on the new status
-      if (newStatus === 'confirmed') {
-        toast.success('Order confirmed and available for motoboys');
-      } else {
-        toast.success('Order status updated successfully');
-        // If changing from confirmed to another status, remove loading state
-        if (loadingOrderId === orderId) {
-          setLoadingOrderId(null);
-        }
-      }
-
+      // Show success message
+      toast.success(`Order status updated to ${orderStatusMap[newStatus]}`);
+      
       // Refresh orders data
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      
     } catch (error) {
       console.error('Error in handleStatusChange:', error);
       toast.error('An unexpected error occurred');
+    } finally {
       setLoadingOrderId(null);
     }
   };
@@ -166,7 +154,7 @@ const AdminOrders = () => {
                           {loadingOrderId === order.id ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Procurando motoboy...</span>
+                              <span>Atualizando...</span>
                             </>
                           ) : (
                             <Badge className={getStatusColor(order.status)}>
