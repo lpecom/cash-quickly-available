@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +27,28 @@ type LoginForm = z.infer<typeof loginSchema>;
 const MotoboyAuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.role === 'motoboy') {
+          navigate('/entregas');
+        } else {
+          toast.error("Acesso não autorizado para esta área.");
+          await supabase.auth.signOut();
+        }
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
