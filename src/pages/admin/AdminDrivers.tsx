@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DriversMenu } from "@/components/admin/drivers/DriversMenu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const mapOrderStatusToDeliveryStatus = (orderStatus: string) => {
   switch (orderStatus) {
@@ -32,7 +33,10 @@ const AdminDrivers = () => {
         .select('*')
         .eq('role', 'motoboy');
 
-      if (error) throw error;
+      if (error) {
+        toast.error("Erro ao carregar entregadores");
+        throw error;
+      }
       return profiles;
     }
   });
@@ -48,7 +52,10 @@ const AdminDrivers = () => {
           driver_uuid: selectedDriverId
         });
 
-      if (error) throw error;
+      if (error) {
+        toast.error("Erro ao carregar métricas do entregador");
+        throw error;
+      }
       return data[0];
     }
   });
@@ -73,7 +80,10 @@ const AdminDrivers = () => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        toast.error("Erro ao carregar entregas");
+        throw error;
+      }
 
       return orders.map(order => ({
         id: order.id,
@@ -89,7 +99,7 @@ const AdminDrivers = () => {
 
   if (isLoadingDrivers) {
     return (
-      <div className="container mx-auto p-4 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-8 w-48" />
@@ -97,41 +107,24 @@ const AdminDrivers = () => {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-48" />
           ))}
         </div>
-        <Skeleton className="h-64" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Entregadores</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <div className="flex items-center gap-2">
-        <Users className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Entregadores</h1>
-      </div>
-
-      <DriversMenu />
-
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground">
-          {drivers?.length || 0} entregadores cadastrados
-        </p>
+        <div>
+          <h1 className="text-3xl font-bold">Entregadores</h1>
+          <p className="text-muted-foreground">
+            {drivers?.length || 0} entregadores cadastrados
+          </p>
+        </div>
         <Button asChild>
           <Link to="/driver-signup">
             <Plus className="mr-2 h-4 w-4" />
@@ -144,7 +137,7 @@ const AdminDrivers = () => {
         {drivers?.map((driver) => (
           <div 
             key={driver.id}
-            className="bg-card border rounded-lg p-6 space-y-4 hover:shadow-md transition-shadow"
+            className="bg-card border rounded-lg p-6 space-y-4 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-start justify-between">
               <div>
