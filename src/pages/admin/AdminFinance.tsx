@@ -13,6 +13,9 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DollarSign } from "lucide-react";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { FinanceMenu } from "@/components/admin/finance/FinanceMenu";
 
 interface PaymentRequest {
   id: string;
@@ -117,13 +120,25 @@ const AdminFinance = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Financeiro</h1>
-        <p className="text-muted-foreground">
-          Gerenciamento de solicitações de pagamento
-        </p>
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Financeiro</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <DollarSign className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Financeiro</h1>
       </div>
+
+      <FinanceMenu />
 
       <div className="rounded-md border">
         <Table>
