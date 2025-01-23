@@ -32,19 +32,21 @@ type ProductVariation = {
   options: string;
 };
 
+type ProductFormValues = z.infer<typeof productSchema>;
+
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   description: z.string().optional(),
   sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
-  variations: z.array(z.object({
-    name: z.string().min(1, "Nome da variação é obrigatório"),
-    options: z.string().min(1, "Opções são obrigatórias"),
-  })),
+  variations: z.array(
+    z.object({
+      name: z.string().min(1, "Nome da variação é obrigatório"),
+      options: z.string().min(1, "Opções são obrigatórias"),
+    })
+  ),
   stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
 });
-
-type ProductFormValues = z.infer<typeof productSchema>;
 
 const CreateProduct = () => {
   const navigate = useNavigate();
@@ -166,14 +168,21 @@ const CreateProduct = () => {
 
   const addVariation = () => {
     const currentVariations = form.getValues("variations") || [];
-    const newVariation: ProductVariation = { name: "", options: "" };
-    form.setValue("variations", [...currentVariations, newVariation]);
+    const newVariation: ProductVariation = { 
+      name: "", 
+      options: "" 
+    };
+    form.setValue("variations", [...currentVariations, newVariation], {
+      shouldValidate: true
+    });
   };
 
   const removeVariation = (index: number) => {
     const currentVariations = form.getValues("variations") || [];
-    form.setValue("variations", 
-      currentVariations.filter((_, i) => i !== index)
+    form.setValue(
+      "variations", 
+      currentVariations.filter((_, i) => i !== index),
+      { shouldValidate: true }
     );
   };
 
