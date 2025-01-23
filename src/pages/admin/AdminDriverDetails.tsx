@@ -2,47 +2,83 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, DollarSign, Package, CheckCircle } from "lucide-react";
 import { DeliveryHistory } from "@/components/admin/drivers/DeliveryHistory";
-
-// Mock data - replace with real data later
-const mockDriver = {
-  id: "1",
-  name: "João Silva",
-  phone: "(11) 98765-4321",
-  email: "joao.silva@email.com",
-  totalDeliveries: 156,
-  successRate: 94,
-  totalEarnings: 2890.5,
-  completionRate: 92,
-};
-
-const mockDeliveries = [
-  {
-    id: "1",
-    orderId: "ORD001",
-    date: new Date(),
-    customer: "Cliente 1",
-    amount: 150.0,
-    status: "completed" as const,
-    commission: 15.0,
-  },
-  {
-    id: "2",
-    orderId: "ORD002",
-    date: new Date(Date.now() - 86400000),
-    customer: "Cliente 2",
-    amount: 89.9,
-    status: "failed" as const,
-    commission: 8.99,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDriverDetails = () => {
   const { driverId } = useParams();
 
+  const { data: driverProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['driver-profile', driverId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', driverId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: driverMetrics, isLoading: isLoadingMetrics } = useQuery({
+    queryKey: ['driver-metrics', driverId],
+    queryFn: async () => {
+      if (!driverId) return null;
+      
+      const { data, error } = await supabase
+        .rpc('get_driver_metrics', {
+          driver_uuid: driverId
+        });
+
+      if (error) throw error;
+      return data[0];
+    }
+  });
+
+  const { data: deliveries, isLoading: isLoadingDeliveries } = useQuery({
+    queryKey: ['driver-deliveries', driverId],
+    queryFn: async () => {
+      if (!driverId) return [];
+
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          created_at,
+          customer_name,
+          total,
+          status,
+          commission
+        `)
+        .eq('driver_id', driverId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      return orders.map(order => ({
+        id: order.id,
+        orderId: order.id,
+        date: new Date(order.created_at),
+        customer: order.customer_name,
+        amount: order.total,
+        status: order.status === 'delivered' ? 'completed' : 
+               order.status === 'not_delivered' ? 'failed' : 'cancelled',
+        commission: order.commission || 0
+      }));
+    }
+  });
+
+  if (isLoadingProfile || !driverProfile) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{mockDriver.name}</h1>
+        <h1 className="text-3xl font-bold">{driverProfile.full_name}</h1>
         <p className="text-muted-foreground">Detalhes do entregador</p>
       </div>
 
@@ -53,7 +89,9 @@ const AdminDriverDetails = () => {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockDriver.totalDeliveries}</div>
+            <div className="text-2xl font-bold">
+              {driverMetrics?.total_deliveries || 0}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -62,7 +100,9 @@ const AdminDriverDetails = () => {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockDriver.successRate}%</div>
+            <div className="text-2xl font-bold">
+              {driverMetrics?.success_rate || 0}%
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -72,7 +112,7 @@ const AdminDriverDetails = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              R$ {mockDriver.totalEarnings.toFixed(2)}
+              R$ {(driverMetrics?.total_earnings || 0).toFixed(2)}
             </div>
           </CardContent>
         </Card>
@@ -84,7 +124,9 @@ const AdminDriverDetails = () => {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockDriver.completionRate}%</div>
+            <div className="text-2xl font-bold">
+              {driverMetrics?.completion_rate || 0}%
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -97,15 +139,19 @@ const AdminDriverDetails = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Nome</p>
-              <p className="font-medium">{mockDriver.name}</p>
+              <p className="font-medium">{driverProfile.full_name}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Telefone</p>
-              <p className="font-medium">{mockDriver.phone}</p>
+              <p className="font-medium">{driverProfile.phone || 'Não informado'}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{mockDriver.email}</p>
+              <p className="text-sm text-muted-foreground">Placa da Moto</p>
+              <p className="font-medium">{driverProfile.motorcycle_plate || 'Não informada'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Modelo da Moto</p>
+              <p className="font-medium">{driverProfile.motorcycle_model || 'Não informado'}</p>
             </div>
           </div>
         </CardContent>
@@ -113,7 +159,7 @@ const AdminDriverDetails = () => {
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Histórico de Entregas</h2>
-        <DeliveryHistory deliveries={mockDeliveries} />
+        {deliveries && <DeliveryHistory deliveries={deliveries} />}
       </div>
     </div>
   );
