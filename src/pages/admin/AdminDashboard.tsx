@@ -91,6 +91,31 @@ const AdminDashboard: React.FC = () => {
     },
   });
 
+  const { data: selectedOrder } = useQuery({
+    queryKey: ['order', selectedOrderId],
+    queryFn: async () => {
+      if (!selectedOrderId) return null;
+
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          items:order_items(
+            id,
+            quantity,
+            price_at_time,
+            product:products(*)
+          )
+        `)
+        .eq('id', selectedOrderId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedOrderId,
+  });
+
   if (statsLoading) {
     return (
       <div className="space-y-6">
@@ -221,8 +246,8 @@ const AdminDashboard: React.FC = () => {
         </div>
         
         <div>
-          {selectedOrderId && (
-            <OrderDetailsPanel orderId={selectedOrderId} />
+          {selectedOrder && (
+            <OrderDetailsPanel order={selectedOrder} />
           )}
         </div>
       </div>
