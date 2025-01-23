@@ -29,6 +29,8 @@ const MotoboyDashboard = () => {
     queryKey: ["available-orders"],
     queryFn: async () => {
       console.log("Fetching available orders...");
+      const { data: user } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from("orders")
         .select(`
@@ -41,15 +43,13 @@ const MotoboyDashboard = () => {
             )
           )
         `)
-        .eq("status", "confirmed")
-        .is("driver_id", null)
+        .or(`status.eq.confirmed,and(status.eq.on_route,driver_id.eq.${user.user?.id})`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       console.log("Orders fetched:", data);
       return data as OrderWithItems[];
     },
-    // Add refetch interval to keep the list updated
     refetchInterval: 5000,
   });
 
@@ -78,6 +78,9 @@ const MotoboyDashboard = () => {
     );
   }
 
+  const availableOrders = orders?.filter(order => order.status === 'confirmed' && !order.driver_id) || [];
+  const activeOrders = orders?.filter(order => order.status === 'on_route' && order.driver_id) || [];
+
   return (
     <div className="min-h-screen bg-secondary pb-16">
       <ScrollArea className="h-[calc(100vh-4rem)]">
@@ -85,7 +88,7 @@ const MotoboyDashboard = () => {
           <div className="mb-6">
             <h1 className="text-2xl font-bold">Pedidos Disponíveis</h1>
             <p className="text-muted-foreground">
-              {orders?.length || 0} pedidos aguardando entregador
+              {availableOrders.length} pedidos aguardando entregador
             </p>
           </div>
 
@@ -99,8 +102,40 @@ const MotoboyDashboard = () => {
             </Alert>
           )}
           
+          {activeOrders.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Entregas em Andamento</h2>
+              <div className="space-y-4">
+                {activeOrders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={{
+                      id: order.id,
+                      customer_name: order.customer_name,
+                      address: order.address,
+                      status: order.status,
+                      amount: `R$ ${order.total.toFixed(2)}`,
+                      items: `${order.order_items?.length || 0} items`,
+                      phone: order.phone,
+                      accepted_at: order.accepted_at,
+                      created_at: order.created_at,
+                      total: order.total,
+                      deliveryInstructions: order.delivery_instructions || undefined,
+                      products: order.order_items?.map((item) => ({
+                        name: item.products?.name || 'Produto',
+                        quantity: item.quantity
+                      }))
+                    }}
+                    onStartDelivery={() => {}}
+                    onContactCustomer={() => {}}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
-            {orders?.map((order) => (
+            {availableOrders.map((order) => (
               <OrderCard
                 key={order.id}
                 order={{
@@ -124,7 +159,7 @@ const MotoboyDashboard = () => {
                 onContactCustomer={() => {}}
               />
             ))}
-            {orders?.length === 0 && (
+            {availableOrders.length === 0 && !activeOrders.length && (
               <div className="text-center py-8 bg-white rounded-lg shadow-sm">
                 <Package className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
                 <p className="text-muted-foreground">
