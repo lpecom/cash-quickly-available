@@ -27,6 +27,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariationField } from "@/components/admin/products/VariationField";
 import { StockMatrix } from "@/components/admin/products/StockMatrix";
 
+type ProductVariation = {
+  name: string;
+  options: string;
+};
+
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   description: z.string().optional(),
@@ -54,7 +59,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [] as { name: string; options: string }[],
+      variations: [] as ProductVariation[],
       stock: {},
     },
   });
@@ -74,7 +79,6 @@ const CreateProduct = () => {
           return;
         }
 
-        // Get user role from profiles table
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
@@ -162,16 +166,14 @@ const CreateProduct = () => {
 
   const addVariation = () => {
     const currentVariations = form.getValues("variations") || [];
-    form.setValue("variations", [
-      ...currentVariations,
-      { name: "", options: "" },
-    ] as { name: string; options: string }[]);
+    const newVariation: ProductVariation = { name: "", options: "" };
+    form.setValue("variations", [...currentVariations, newVariation]);
   };
 
   const removeVariation = (index: number) => {
     const currentVariations = form.getValues("variations") || [];
     form.setValue("variations", 
-      currentVariations.filter((_, i) => i !== index) as { name: string; options: string }[]
+      currentVariations.filter((_, i) => i !== index)
     );
   };
 
