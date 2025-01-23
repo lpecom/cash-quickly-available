@@ -10,6 +10,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardOrderList } from "@/components/admin/DashboardOrderList";
 import { OrderDetailsPanel } from "@/components/admin/OrderDetailsPanel";
+import { Order } from "@/types/order";
 
 const AdminDashboard: React.FC = () => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
@@ -102,8 +103,11 @@ const AdminDashboard: React.FC = () => {
           *,
           items:order_items(
             id,
+            order_id,
+            product_id,
             quantity,
             price_at_time,
+            created_at,
             product:products(*)
           )
         `)
@@ -111,7 +115,7 @@ const AdminDashboard: React.FC = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Order;
     },
     enabled: !!selectedOrderId,
   });

@@ -30,9 +30,13 @@ export const OrderMap = ({ address }: OrderMapProps) => {
     );
 
     // Geocode address and center map
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`)
-      .then(response => response.json())
-      .then(data => {
+    const geocodeAddress = async () => {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
+        );
+        const data = await response.json();
+        
         if (data.features && data.features.length > 0) {
           const [lng, lat] = data.features[0].center;
           map.current?.setCenter([lng, lat]);
@@ -40,7 +44,12 @@ export const OrderMap = ({ address }: OrderMapProps) => {
             .setLngLat([lng, lat])
             .addTo(map.current!);
         }
-      });
+      } catch (error) {
+        console.error('Error geocoding address:', error);
+      }
+    };
+
+    geocodeAddress();
 
     return () => {
       map.current?.remove();
