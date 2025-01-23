@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Truck, DollarSign, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
