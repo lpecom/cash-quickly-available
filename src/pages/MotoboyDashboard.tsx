@@ -9,7 +9,15 @@ import { OrderCard } from "@/components/delivery/OrderCard";
 import MobileNav from "@/components/MobileNav";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-type Order = Tables<"orders">;
+type OrderWithItems = Tables<"orders"> & {
+  order_items: Array<{
+    quantity: number;
+    price_at_time: number;
+    products: {
+      name: string;
+    } | null;
+  }>;
+};
 
 const MotoboyDashboard = () => {
   const [currentLocation, setCurrentLocation] = useState<{
@@ -39,7 +47,7 @@ const MotoboyDashboard = () => {
 
       if (error) throw error;
       console.log("Orders fetched:", data);
-      return data as Order[];
+      return data as OrderWithItems[];
     },
   });
 
@@ -105,7 +113,7 @@ const MotoboyDashboard = () => {
                   created_at: order.created_at,
                   total: order.total,
                   deliveryInstructions: order.delivery_instructions || undefined,
-                  products: order.order_items?.map((item: any) => ({
+                  products: order.order_items?.map((item) => ({
                     name: item.products?.name || 'Produto',
                     quantity: item.quantity
                   }))
