@@ -25,6 +25,7 @@ const CreateProduct = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [session, setSession] = useState(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -42,6 +43,7 @@ const CreateProduct = () => {
     const checkAdminAccess = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
         
         if (!session) {
           toast({
@@ -77,10 +79,20 @@ const CreateProduct = () => {
     };
 
     checkAdminAccess();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate, toast]);
 
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
       const processedVariations = values.variations.map(v => ({
         name: v.name,
         options: v.options.split(',').map(o => o.trim()),
