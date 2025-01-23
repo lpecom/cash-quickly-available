@@ -74,7 +74,7 @@ export function ShopifySettings() {
         .update({
           shopify_enabled: values.shopify_enabled,
           shopify_settings: values.shopify_settings as Json,
-          shopify_onboarding_status: values.shopify_enabled ? 'pending' : 'completed',
+          shopify_onboarding_status: values.shopify_enabled ? 'pending' : 'not_started',
         })
         .eq('user_id', user.id);
 
@@ -98,7 +98,9 @@ export function ShopifySettings() {
     return <div>Loading...</div>;
   }
 
-  if (sellerProfile?.shopify_enabled && sellerProfile?.shopify_onboarding_status !== 'completed') {
+  // Show onboarding flow when Shopify is enabled and onboarding is pending or in_progress
+  if (sellerProfile?.shopify_enabled && 
+      ['pending', 'in_progress'].includes(sellerProfile?.shopify_onboarding_status)) {
     return <ShopifyOnboarding />;
   }
 
