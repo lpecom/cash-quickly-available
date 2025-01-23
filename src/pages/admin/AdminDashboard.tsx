@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Truck, DollarSign, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +9,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const AdminDashboard = () => {
+const AdminDashboard: React.FC = () => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
