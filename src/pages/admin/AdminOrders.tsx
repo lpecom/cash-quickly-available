@@ -80,8 +80,8 @@ const AdminOrders = () => {
         return;
       }
 
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Order is now available for drivers');
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error) {
       console.error('Error in handleCallDriver:', error);
       toast.error('An unexpected error occurred');
@@ -111,8 +111,8 @@ const AdminOrders = () => {
         return;
       }
 
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success(`Order status updated to ${orderStatusMap[newStatus]}`);
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error) {
       console.error('Error in handleStatusChange:', error);
       toast.error('An unexpected error occurred');
