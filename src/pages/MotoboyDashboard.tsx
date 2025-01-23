@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import MobileNav from "@/components/MobileNav";
 
 type Order = Tables<"orders">;
 
@@ -56,7 +57,7 @@ const MotoboyDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary pb-6">
+    <div className="min-h-screen bg-secondary pb-16">
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <div className="container mx-auto p-4">
           <div className="mb-6">
@@ -114,6 +115,7 @@ const MotoboyDashboard = () => {
           </div>
         </div>
       </ScrollArea>
+      <MobileNav />
     </div>
   );
 };

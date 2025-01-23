@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Package, MapPin } from "lucide-react";
-import { toast } from "sonner";
+import { DollarSign, ChevronRight, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { Order } from "@/types/order";
+import MobileNav from "@/components/MobileNav";
 
-// Define the fetchOrders function
 const fetchOrders = async (): Promise<Order[]> => {
   const { data, error } = await supabase
     .from("orders")
@@ -21,35 +19,11 @@ const fetchOrders = async (): Promise<Order[]> => {
 };
 
 const MotoboySales = () => {
-  const queryClient = useQueryClient();
-  const { data: orders = [], isLoading, error } = useQuery<Order[]>({
+  const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["confirmed-orders"],
     queryFn: fetchOrders,
     refetchInterval: 5000, // Refresh every 5 seconds to get new orders
   });
-
-  const handleAcceptOrder = async (orderId: string) => {
-    try {
-      const user = await supabase.auth.getUser();
-      const { error } = await supabase
-        .from("orders")
-        .update({ 
-          status: "on_route",
-          driver_id: user.data.user?.id 
-        })
-        .eq("id", orderId)
-        .eq("status", "confirmed")
-        .is("driver_id", null);
-
-      if (error) throw error;
-
-      toast.success("Pedido aceito com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["confirmed-orders"] });
-    } catch (error) {
-      console.error("Error accepting order:", error);
-      toast.error("Erro ao aceitar pedido");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -59,74 +33,74 @@ const MotoboySales = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-secondary p-4 flex items-center justify-center">
-        <p className="text-destructive">Erro ao carregar pedidos</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-secondary pb-6">
-      <ScrollArea className="h-[calc(100vh-4rem)]">
-        <div className="container mx-auto p-4">
-          <div className="mb-6">
+    <div className="min-h-screen bg-secondary pb-16">
+      <div className="max-w-lg mx-auto">
+        <div className="flex items-center justify-between mb-6 p-4">
+          <div>
             <h1 className="text-xl font-bold">Pedidos Disponíveis</h1>
             <p className="text-sm text-muted-foreground">
-              {orders.length} pedidos aguardando entregador
+              {orders.length} pedidos para entrega
             </p>
           </div>
+        </div>
 
-          <div className="space-y-4">
+        <ScrollArea className="h-[calc(100vh-280px)]">
+          <div className="space-y-4 px-4">
             {orders.map((order) => (
-              <div
+              <Link
                 key={order.id}
-                className="bg-card rounded-lg shadow-sm p-4 space-y-3"
+                to={`/order/${order.id}`}
+                className="block bg-card rounded-lg shadow-sm p-4"
               >
-                <div>
-                  <h3 className="font-medium">Pedido #{order.id.slice(0, 8)}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {order.customer_name}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <span>{order.address}</span>
-                </div>
-
-                {order.delivery_instructions && (
-                  <p className="text-sm text-muted-foreground">
-                    Instruções: {order.delivery_instructions}
-                  </p>
-                )}
-
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">
-                    R$ {order.total.toFixed(2)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAcceptOrder(order.id)}
-                    className="gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Aceitar
-                  </Button>
+                  <div>
+                    <h3 className="font-medium">
+                      Pedido #{order.id.slice(0, 8)}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        {order.status === "delivered" ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-primary/10 text-primary border-0 flex items-center gap-1"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            Entregue
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="destructive"
+                            className="flex items-center gap-1"
+                          >
+                            <XCircle className="w-3 h-3" />
+                            Não entregue
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="font-medium">
+                        R$ {order.total.toFixed(2)}
+                      </span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
-
             {orders.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhum pedido disponível no momento
               </div>
             )}
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
+      <MobileNav />
     </div>
   );
 };

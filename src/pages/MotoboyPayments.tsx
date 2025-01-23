@@ -69,7 +69,7 @@ const MotoboyPayments = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary p-4 pb-20">
+    <div className="min-h-screen bg-secondary pb-16">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -141,6 +141,7 @@ const MotoboyPayments = () => {
           </div>
         </ScrollArea>
       </div>
+      <MobileNav />
     </div>
   );
 };
