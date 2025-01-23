@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/order";
@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Checkout() {
   const { productId } = useParams();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [shippingMethod, setShippingMethod] = useState<"free" | "express">("free");
   const [formData, setFormData] = useState({
@@ -25,6 +26,7 @@ export default function Checkout() {
     state: "",
     pincode: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", productId],
@@ -50,51 +52,72 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .insert([
-          {
-            customer_name: formData.fullName,
-            address: `${formData.address}, ${formData.landmark}, ${formData.city}, ${formData.state} ${formData.pincode}`,
-            phone: formData.phone,
-            total: product?.price || 0,
-          },
-        ])
+      // Validate required fields
+      if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+
+      if (!product) {
+        toast.error("Product information not available");
+        return;
+      }
+
+      const shippingCost = shippingMethod === "express" ? 3.99 : 0;
+      const total = product.price + shippingCost;
+
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          customer_name: formData.fullName,
+          address: `${formData.address}, ${formData.landmark}, ${formData.city}, ${formData.state} ${formData.pincode}`,
+          phone: formData.phone,
+          status: 'pending',
+          total: total,
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (orderError) throw orderError;
 
-      if (data) {
-        await supabase
-          .from("order_items")
-          .insert([
-            {
-              order_id: data.id,
-              product_id: productId,
-              quantity: 1,
-              price_at_time: product?.price || 0,
-            },
-          ]);
+      // Create order item
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert([{
+          order_id: order.id,
+          product_id: productId,
+          quantity: 1,
+          price_at_time: product.price,
+        }]);
 
-        toast.success("Order placed successfully!");
-      }
+      if (itemError) throw itemError;
+
+      toast.success("Order placed successfully!");
+      // Redirect to a success page or show success message
+      navigate(`/success?orderId=${order.id}`);
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error('Error creating order:', error);
       toast.error("Failed to place order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300">
-        <Card className="w-[300px] h-[150px] flex items-center justify-center bg-white/95 backdrop-blur">
-          <CardContent>
-            <div className="animate-pulse flex flex-col items-center gap-4">
-              <div className="h-8 w-8 rounded-full bg-blue-200" />
-              <div className="h-4 w-32 rounded bg-blue-200" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300 p-4 md:p-8 flex items-center justify-center">
+        <Card className="w-full max-w-md animate-pulse">
+          <CardContent className="p-8">
+            <div className="h-8 bg-gray-200 rounded mb-4" />
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-8" />
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded" />
+              <div className="h-10 bg-gray-200 rounded" />
+              <div className="h-10 bg-gray-200 rounded" />
             </div>
           </CardContent>
         </Card>
@@ -104,10 +127,13 @@ export default function Checkout() {
 
   if (!product) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300">
-        <Card className="w-[300px] h-[150px] flex items-center justify-center bg-white/95 backdrop-blur">
-          <CardContent>
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300 p-4 md:p-8 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
             <p className="text-lg text-gray-500">Product not found</p>
+            <Button className="mt-4" onClick={() => navigate("/")}>
+              Return Home
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -118,8 +144,8 @@ export default function Checkout() {
   const totalCost = (product.price + shippingCost).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300">
+      <div className="max-w-7xl mx-auto p-4 md:p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
             <ShoppingBag className="h-8 w-8" />
@@ -129,116 +155,118 @@ export default function Checkout() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {!isMobile && (
-            <Card className="bg-white/95 backdrop-blur order-1 md:order-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Shipping Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+          <Card className="bg-white/95 backdrop-blur order-2 md:order-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                Shipping Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address *</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    placeholder="Street address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="landmark">Landmark (Optional)</Label>
+                  <Input
+                    id="landmark"
+                    name="landmark"
+                    placeholder="Nearby landmark"
+                    value={formData.landmark}
+                    onChange={handleInputChange}
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="city">City *</Label>
                     <Input
-                      id="fullName"
-                      name="fullName"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
+                      id="city"
+                      name="city"
+                      placeholder="City"
+                      value={formData.city}
                       onChange={handleInputChange}
                       required
                       className="bg-white"
                     />
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="state">State *</Label>
                     <Input
-                      id="phone"
-                      name="phone"
-                      placeholder="Enter your phone number"
-                      value={formData.phone}
+                      id="state"
+                      name="state"
+                      placeholder="State"
+                      value={formData.state}
                       onChange={handleInputChange}
                       required
                       className="bg-white"
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      placeholder="Street address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pincode">Pincode *</Label>
+                  <Input
+                    id="pincode"
+                    name="pincode"
+                    placeholder="Postal code"
+                    value={formData.pincode}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-white"
+                  />
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="landmark">Landmark (Optional)</Label>
-                    <Input
-                      id="landmark"
-                      name="landmark"
-                      placeholder="Nearby landmark"
-                      value={formData.landmark}
-                      onChange={handleInputChange}
-                      className="bg-white"
-                    />
-                  </div>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Processing..." : `Complete Order - R$ ${totalCost}`}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        required
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input
-                        id="state"
-                        name="state"
-                        placeholder="State"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        required
-                        className="bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pincode">Pincode</Label>
-                    <Input
-                      id="pincode"
-                      name="pincode"
-                      placeholder="Postal code"
-                      value={formData.pincode}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    Place Order
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card className="bg-white/95 backdrop-blur">
+          <Card className="bg-white/95 backdrop-blur md:sticky md:top-8">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -304,115 +332,6 @@ export default function Checkout() {
               </div>
             </CardContent>
           </Card>
-
-          {isMobile && (
-            <Card className="bg-white/95 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Shipping Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      placeholder="Enter your phone number"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      placeholder="Street address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="landmark">Landmark (Optional)</Label>
-                    <Input
-                      id="landmark"
-                      name="landmark"
-                      placeholder="Nearby landmark"
-                      value={formData.landmark}
-                      onChange={handleInputChange}
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        required
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input
-                        id="state"
-                        name="state"
-                        placeholder="State"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        required
-                        className="bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pincode">Pincode</Label>
-                    <Input
-                      id="pincode"
-                      name="pincode"
-                      placeholder="Postal code"
-                      value={formData.pincode}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-white"
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    Place Order - R$ {totalCost}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
