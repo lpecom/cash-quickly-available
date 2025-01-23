@@ -3,6 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { ProductFormValues } from "@/types/product";
+import { SupplierSelect } from "./SupplierSelect";
 
 interface BasicProductInfoProps {
   form: UseFormReturn<ProductFormValues>;
@@ -68,6 +69,8 @@ export const BasicProductInfo = ({ form }: BasicProductInfoProps) => {
           )}
         />
       </div>
+
+      <SupplierSelect form={form} />
     </div>
   );
 };

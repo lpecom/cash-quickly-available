@@ -10,6 +10,7 @@ export const productSchema = z.object({
   description: z.string().optional(),
   sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
+  supplier_id: z.string().uuid("Fornecedor inválido").optional(),
   variations: z.array(
     z.object({
       name: z.string().min(1, "Nome da variação é obrigatório"),
