@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Truck } from "lucide-react";
+import { Package, Truck, Store } from "lucide-react";
 
 export default function Index() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full">
+      <div className="max-w-5xl w-full">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
             Sistema de Entregas
@@ -17,7 +17,7 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card 
             className="hover:border-primary transition-colors cursor-pointer h-full"
             onClick={() => navigate("/auth/motoboy")}
@@ -37,6 +37,29 @@ export default function Index() {
                 <li>• Gerencie suas entregas</li>
                 <li>• Acompanhe seus ganhos</li>
                 <li>• Acesse seu histórico</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="hover:border-primary transition-colors cursor-pointer h-full"
+            onClick={() => navigate("/auth/seller")}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Store className="h-6 w-6 text-primary" />
+                Área do Vendedor
+              </CardTitle>
+              <CardDescription>
+                Gerencie seus produtos e vendas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Cadastre produtos</li>
+                <li>• Acompanhe pedidos</li>
+                <li>• Gerencie entregas</li>
+                <li>• Relatórios de vendas</li>
               </ul>
             </CardContent>
           </Card>

@@ -19,6 +19,7 @@ import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import Index from "./pages/Index";
 import AdminAuthPage from "./pages/auth/AdminAuthPage";
 import MotoboyAuthPage from "./pages/auth/MotoboyAuthPage";
+import SellerAuthPage from "./pages/auth/SellerAuthPage";
 import DriverSignup from "./pages/auth/DriverSignup";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
@@ -37,6 +38,7 @@ function App() {
         {/* Auth Routes */}
         <Route path="/auth/admin" element={<AdminAuthPage />} />
         <Route path="/auth/motoboy" element={<MotoboyAuthPage />} />
+        <Route path="/auth/seller" element={<SellerAuthPage />} />
         <Route path="/driver-signup" element={<DriverSignup />} />
 
         {/* Checkout Routes */}
@@ -69,7 +71,6 @@ function App() {
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
           <Route path="settings" element={<SellerSettings />} />
-          {/* Other seller routes will be added later */}
         </Route>
       </Routes>
       <Toaster />
