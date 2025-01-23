@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ProductFormValues, productSchema } from "@/types/product";
 import { MetricCard } from "@/components/MetricCard";
+import { CheckoutLinkGenerator } from "@/components/admin/products/CheckoutLinkGenerator";
 
 interface DbProductVariation {
   name: string;
@@ -184,10 +185,6 @@ const AdminProductDetails = () => {
     }
   };
 
-  if (isLoadingProduct) {
-    return <div>Carregando...</div>;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -226,19 +223,20 @@ const AdminProductDetails = () => {
         />
       </div>
 
-      <Card className="border-2 border-muted shadow-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <CardTitle>Informações do Produto</CardTitle>
-          </div>
-          <CardDescription>
-            Atualize as informações do produto
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-2 border-muted shadow-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              <CardTitle>Informações do Produto</CardTitle>
+            </div>
+            <CardDescription>
+              Atualize as informações do produto
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -296,19 +294,26 @@ const AdminProductDetails = () => {
                   )}
                 />
               </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isLoading ? "Salvando..." : "Salvar Alterações"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
 
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isLoading}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {isLoading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+        {product && (
+          <CheckoutLinkGenerator
+            productId={productId!}
+            productName={product.name}
+          />
+        )}
+      </div>
     </div>
   );
 };
