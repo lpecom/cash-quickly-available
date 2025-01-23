@@ -50,7 +50,7 @@ const AdminOrders = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (filters.dateRange) {
+      if (filters.dateRange?.from && filters.dateRange?.to) {
         query = query
           .gte('created_at', filters.dateRange.from.toISOString())
           .lte('created_at', filters.dateRange.to.toISOString());
@@ -80,7 +80,10 @@ const AdminOrders = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
       
       return (data || []).map(order => ({
         ...order,
