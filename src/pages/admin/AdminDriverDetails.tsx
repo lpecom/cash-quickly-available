@@ -5,6 +5,17 @@ import { DeliveryHistory } from "@/components/admin/drivers/DeliveryHistory";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+const mapOrderStatusToDeliveryStatus = (orderStatus: string) => {
+  switch (orderStatus) {
+    case 'delivered':
+      return 'completed' as const;
+    case 'not_delivered':
+      return 'failed' as const;
+    default:
+      return 'cancelled' as const;
+  }
+};
+
 const AdminDriverDetails = () => {
   const { driverId } = useParams();
 
@@ -64,8 +75,7 @@ const AdminDriverDetails = () => {
         date: new Date(order.created_at),
         customer: order.customer_name,
         amount: order.total,
-        status: order.status === 'delivered' ? 'completed' : 
-               order.status === 'not_delivered' ? 'failed' : 'cancelled',
+        status: mapOrderStatusToDeliveryStatus(order.status),
         commission: order.commission || 0
       }));
     }

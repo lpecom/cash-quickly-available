@@ -10,6 +10,17 @@ import { DriversMenu } from "@/components/admin/drivers/DriversMenu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "react-router-dom";
 
+const mapOrderStatusToDeliveryStatus = (orderStatus: string) => {
+  switch (orderStatus) {
+    case 'delivered':
+      return 'completed' as const;
+    case 'not_delivered':
+      return 'failed' as const;
+    default:
+      return 'cancelled' as const;
+  }
+};
+
 const AdminDrivers = () => {
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
@@ -70,8 +81,7 @@ const AdminDrivers = () => {
         date: new Date(order.created_at),
         customer: order.customer_name,
         amount: order.total,
-        status: order.status === 'delivered' ? 'completed' : 
-               order.status === 'not_delivered' ? 'failed' : 'cancelled',
+        status: mapOrderStatusToDeliveryStatus(order.status),
         commission: order.commission || 0
       }));
     }
