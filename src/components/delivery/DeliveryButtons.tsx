@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { RescheduleDeliveryDialog } from "./RescheduleDeliveryDialog";
 
 const DELIVERY_FAILURE_REASONS = [
   "Cliente ausente",
@@ -143,7 +144,7 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt, status }:
     setShowConfirmDialog(true);
   };
 
-  // If the order is in "not_delivered" status, show only the return confirmation button
+  // If the order is in "not_delivered" status, show return confirmation and reschedule buttons
   if (status === 'not_delivered') {
     return (
       <div className="space-y-4 mt-4">
@@ -168,6 +169,7 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt, status }:
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <RescheduleDeliveryDialog orderId={orderId} />
       </div>
     );
   }
