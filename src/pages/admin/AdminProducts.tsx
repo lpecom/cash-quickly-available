@@ -78,6 +78,11 @@ const AdminProducts = () => {
     }
   };
 
+  const handleNewProduct = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default behavior
+    navigate("/admin/products/new");
+  };
+
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) ?? [];
@@ -106,7 +111,7 @@ const AdminProducts = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg font-medium">Lista de Produtos</CardTitle>
-          <Button onClick={() => navigate("/admin/products/new")}>
+          <Button onClick={handleNewProduct}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Produto
           </Button>
