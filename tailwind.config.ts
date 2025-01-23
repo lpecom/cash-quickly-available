@@ -25,7 +25,7 @@ export default {
         background: "#F8FAFC",
         foreground: "#1E293B",
         primary: {
-          DEFAULT: "#8B5CF6",
+          DEFAULT: "#04337c", // Deep blue
           foreground: "#FFFFFF",
         },
         secondary: {
@@ -41,7 +41,12 @@ export default {
           foreground: "#64748B",
         },
         accent: {
-          DEFAULT: "#D946EF",
+          DEFAULT: "#e4c404", // Yellow
+          foreground: "#1E293B",
+        },
+        success: {
+          DEFAULT: "#047c4c", // Darker green
+          light: "#04744c", // Lighter green
           foreground: "#FFFFFF",
         },
         card: {
@@ -52,7 +57,7 @@ export default {
           DEFAULT: "#FFFFFF",
           foreground: "#1E293B",
           border: "#E2E8F0",
-          ring: "#8B5CF6",
+          ring: "#04337c",
           accent: "#F1F5F9",
           "accent-foreground": "#0F172A",
         },
