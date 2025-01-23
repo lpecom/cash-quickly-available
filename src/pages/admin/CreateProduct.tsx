@@ -61,7 +61,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [],
+      variations: [] as ProductVariation[],
       stock: {},
     },
   });
@@ -121,7 +121,7 @@ const CreateProduct = () => {
     mutationFn: async (values: ProductFormValues) => {
       console.log("Creating product with values:", values);
       
-      const processedVariations = values.variations?.map(v => ({
+      const processedVariations = values.variations.map(v => ({
         name: v.name,
         options: v.options.split(',').map(o => o.trim()),
       }));
@@ -172,13 +172,17 @@ const CreateProduct = () => {
 
   const addVariation = () => {
     const currentVariations = form.getValues("variations");
-    form.setValue("variations", [...currentVariations, { name: "", options: "" }], {
+    const newVariation: ProductVariation = {
+      name: "",
+      options: "",
+    };
+    form.setValue("variations", [...currentVariations, newVariation], {
       shouldValidate: true
     });
   };
 
   const removeVariation = (index: number) => {
-    const currentVariations = form.getValues("variations") || [];
+    const currentVariations = form.getValues("variations");
     form.setValue(
       "variations", 
       currentVariations.filter((_, i) => i !== index),
