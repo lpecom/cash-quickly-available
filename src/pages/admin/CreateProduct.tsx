@@ -77,15 +77,19 @@ const CreateProduct = () => {
       const { data, error } = await supabase.from("products").insert([
         {
           name: values.name,
-          description: values.variations, // Using description field for variations
+          description: values.variations,
           price: parseFloat(values.price),
           sku: values.sku,
           stock: parseInt(values.stock),
           active: true,
         },
-      ]);
+      ]).select();
 
       if (error) {
+        console.error("Error creating product:", error);
+        if (error.code === '23505') {
+          throw new Error("SKU já está em uso.");
+        }
         if (error.code === '42501') {
           throw new Error("Você não tem permissão para criar produtos.");
         }
