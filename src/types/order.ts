@@ -17,37 +17,35 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  quantity: number;
-  description: string;
-}
-
-export interface OrderProduct {
-  id: string;
-  productId: string;
-  orderId: string;
-  quantity: number;
-  product: Product;
-}
-
-// Base order type matching Supabase schema
-export interface Order {
-  id: string;
-  customer_name: string;
-  customer_id?: string;
-  address: string;
-  status: OrderStatus;
-  total: number;
-  phone: string;
-  delivery_instructions?: string;
-  driver_id?: string;
+  description: string | null;
+  active: boolean | null;
   created_at: string;
   updated_at: string;
 }
 
-// Extended order type for UI with additional fields
-export interface OrderWithDetails extends Order {
-  products?: OrderProduct[];
-  timeline?: TimelineEvent[];
+export interface OrderItem {
+  id: string;
+  order_id: string | null;
+  product_id: string | null;
+  quantity: number;
+  price_at_time: number;
+  created_at: string;
+  product?: Product;
+}
+
+export interface Order {
+  id: string;
+  customer_name: string;
+  customer_id: string | null;
+  address: string;
+  status: string;
+  total: number;
+  phone: string;
+  delivery_instructions: string | null;
+  driver_id: string | null;
+  created_at: string;
+  updated_at: string;
+  items?: OrderItem[];
 }
 
 export interface TimelineEvent {

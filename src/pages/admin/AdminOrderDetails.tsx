@@ -23,55 +23,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-// Mock data - replace with real data later
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Produto 1",
-    price: 29.90,
-    quantity: 100,
-    description: "Descrição do produto 1",
-  },
-  {
-    id: "2",
-    name: "Produto 2",
-    price: 49.90,
-    quantity: 50,
-    description: "Descrição do produto 2",
-  },
-];
-
-const mockEvents = [
-  {
-    id: "1",
-    type: "status_change" as const,
-    timestamp: new Date("2024-03-10T10:00:00"),
-    description: "Pedido criado",
-    status: "pending" as const,
-  },
-  {
-    id: "2",
-    type: "call" as const,
-    timestamp: new Date("2024-03-10T10:15:00"),
-    description: "Ligação realizada para confirmar endereço",
-    agent: "Maria Silva",
-  },
-  {
-    id: "3",
-    type: "status_change" as const,
-    timestamp: new Date("2024-03-10T10:30:00"),
-    description: "Pedido confirmado",
-    status: "confirmed" as const,
-  },
-  {
-    id: "4",
-    type: "message" as const,
-    timestamp: new Date("2024-03-10T11:00:00"),
-    description: "Mensagem enviada: Seu pedido está sendo preparado",
-    agent: "João Santos",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminOrderDetails = () => {
   const { orderId } = useParams();
@@ -80,32 +33,83 @@ const AdminOrderDetails = () => {
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<Order["status"]>("pending");
 
-  // Mock order - replace with real data fetch
-  const order: Order = {
-    id: orderId || "",
-    customer: "João Silva",
-    address: "Rua A, 123",
-    status: "pending",
-    total: 150.00,
-    phone: "11999999999",
-    products: [
-      {
-        id: "1",
-        productId: "1",
-        orderId: orderId || "",
-        quantity: 2,
-        product: mockProducts[0],
-      },
-    ],
-    createdAt: "2024-03-10T10:00:00",
+  const { data: order, isLoading } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: async () => {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          items:order_items(
+            *,
+            product:products(*)
+          )
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderError) throw orderError;
+      return orderData as Order;
+    },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+      return data as Product[];
+    },
+  });
+
+  if (isLoading || !order) {
+    return <div>Loading...</div>;
+  }
+
+  const handleAddProduct = async () => {
+    if (!selectedProduct || quantity < 1) {
+      toast.error("Please select a product and quantity");
+      return;
+    }
+
+    const product = products?.find(p => p.id === selectedProduct);
+    if (!product) return;
+
+    try {
+      const { error } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderId,
+          product_id: selectedProduct,
+          quantity: quantity,
+          price_at_time: product.price
+        });
+
+      if (error) throw error;
+      toast.success("Product added to order");
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error("Failed to add product");
+    }
   };
 
-  const handleAddProduct = () => {
-    toast.success("Produto adicionado ao pedido");
-  };
+  const handleRemoveProduct = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('id', itemId);
 
-  const handleRemoveProduct = (productId: string) => {
-    toast.success("Produto removido do pedido");
+      if (error) throw error;
+      toast.success("Product removed from order");
+    } catch (error) {
+      console.error('Error removing product:', error);
+      toast.error("Failed to remove product");
+    }
   };
 
   const handleAddNote = () => {
@@ -117,9 +121,20 @@ const AdminOrderDetails = () => {
     setNote("");
   };
 
-  const handleStatusChange = (newStatus: Order["status"]) => {
-    setStatus(newStatus);
-    toast.success(`Status atualizado para ${orderStatusMap[newStatus]}`);
+  const handleStatusChange = async (newStatus: Order["status"]) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      setStatus(newStatus);
+      toast.success(`Status atualizado para ${orderStatusMap[newStatus as keyof typeof orderStatusMap]}`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error("Failed to update status");
+    }
   };
 
   const handleSaveChanges = () => {
@@ -132,7 +147,7 @@ const AdminOrderDetails = () => {
         <div>
           <h1 className="text-3xl font-bold">Pedido #{orderId}</h1>
           <p className="text-muted-foreground">
-            Cliente: {order.customer}
+            Cliente: {order.customer_name}
           </p>
         </div>
         <Button onClick={handleSaveChanges}>
@@ -182,7 +197,7 @@ const AdminOrderDetails = () => {
                   onChange={(e) => setSelectedProduct(e.target.value)}
                 >
                   <option value="">Selecione um produto</option>
-                  {mockProducts.map((product) => (
+                  {products?.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.name}
                     </option>
@@ -204,7 +219,7 @@ const AdminOrderDetails = () => {
           </Card>
 
           <OrderProductList 
-            products={order.products}
+            products={order.items || []}
             onRemoveProduct={handleRemoveProduct}
           />
         </div>
@@ -233,7 +248,7 @@ const AdminOrderDetails = () => {
               <CardDescription>Acompanhe todas as atualizações</CardDescription>
             </CardHeader>
             <CardContent>
-              <OrderTimeline events={mockEvents} />
+              <OrderTimeline events={[]} />
             </CardContent>
           </Card>
         </div>

@@ -9,15 +9,19 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@/types/order";
 
+interface SelectedProduct {
+  productId: string;
+  quantity: number;
+}
+
 export const CreateOrder = () => {
   const navigate = useNavigate();
   const [customerName, setCustomerName] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<Array<{ productId: string; quantity: number }>>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
 
-  // Fetch available products
   const { data: products, isLoading } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
