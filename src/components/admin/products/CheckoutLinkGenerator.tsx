@@ -21,8 +21,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
   const [checkoutLink, setCheckoutLink] = useState('');
 
   const generateCheckoutLink = () => {
-    // Generate a link to your custom checkout page with the product ID
-    const baseUrl = window.location.origin; // Gets your domain
+    const baseUrl = window.location.origin;
     const link = `${baseUrl}/checkout/${productId}`;
     setCheckoutLink(link);
     
@@ -36,7 +35,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
     navigator.clipboard.writeText(checkoutLink);
     toast({
       title: "Copied!",
-      description: "Link copied to clipboard. You can now use this link to replace your Shopify buy button.",
+      description: "Link copied to clipboard.",
     });
   };
 
@@ -52,7 +51,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
           <CardTitle>Custom Checkout Link</CardTitle>
         </div>
         <CardDescription>
-          Generate a checkout link for {productName}. Use this link to replace your Shopify buy button.
+          Generate a checkout link for {productName}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

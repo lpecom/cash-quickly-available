@@ -33,7 +33,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout/:productId" element={<Checkout />} />
           <Route path="/success" element={<OrderSuccess />} />
           <Route path="/order/:orderId" element={<OrderDetails />} />
           <Route path="/auth" element={<AuthPage />} />
