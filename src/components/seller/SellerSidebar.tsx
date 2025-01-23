@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Package, Settings, Store } from "lucide-react";
+import { Package, Settings, Store, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 
@@ -17,6 +17,11 @@ export const SellerSidebar = () => {
       href: "/seller/catalog",
     },
     {
+      title: "Integrações",
+      icon: Share2,
+      href: "/seller/integrations",
+    },
+    {
       title: "Configurações",
       icon: Settings,
       href: "/seller/settings",
@@ -26,6 +31,15 @@ export const SellerSidebar = () => {
   return (
     <Sidebar>
       <SidebarContent className="py-4">
+        <div className="p-6">
+          <div className="flex items-center justify-center">
+            <img 
+              src="https://www.paguequandochegar.com/cdn/shop/files/LOGO-min.png?v=1732965324" 
+              alt="Pague Quando Chegar Logo" 
+              className="h-12 object-contain"
+            />
+          </div>
+        </div>
         <nav className="space-y-1 px-2">
           {menuItems.map((item) => (
             <NavLink
@@ -33,18 +47,15 @@ export const SellerSidebar = () => {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  "w-full",
-                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  isActive 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-muted-foreground hover:bg-muted"
                 )
               }
             >
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-2"
-              >
-                <item.icon className="h-5 w-5" />
-                {item.title}
-              </Button>
+              <item.icon className="h-5 w-5" />
+              {item.title}
             </NavLink>
           ))}
         </nav>

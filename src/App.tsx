@@ -28,6 +28,7 @@ import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerSettings from "./pages/seller/SellerSettings";
 import SellerIntegrations from "./pages/seller/SellerIntegrations";
+import SellerCatalog from "./pages/seller/SellerCatalog";
 
 function App() {
   return (
@@ -71,6 +72,7 @@ function App() {
         {/* Seller Routes */}
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
+          <Route path="catalog" element={<SellerCatalog />} />
           <Route path="settings" element={<SellerSettings />} />
           <Route path="integrations" element={<SellerIntegrations />} />
         </Route>
