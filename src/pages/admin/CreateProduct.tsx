@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -20,33 +12,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { ArrowLeft, Box, Plus, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VariationField } from "@/components/admin/products/VariationField";
-import { StockMatrix } from "@/components/admin/products/StockMatrix";
-
-interface ProductVariation {
-  name: string;
-  options: string;
-}
-
-const productSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  description: z.string().optional(),
-  sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
-  price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
-  variations: z.array(
-    z.object({
-      name: z.string().min(1, "Nome da variação é obrigatório"),
-      options: z.string().min(1, "Opções são obrigatórias"),
-    })
-  ),
-  stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
+import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
+import { CreateProductHeader } from "@/components/admin/products/CreateProductHeader";
+import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
+import { ProductVariations } from "@/components/admin/products/ProductVariations";
 
 const CreateProduct = () => {
   const navigate = useNavigate();
@@ -87,24 +59,14 @@ const CreateProduct = () => {
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          toast({
-            title: "Erro",
-            description: "Erro ao verificar permissões.",
-            variant: "destructive",
-          });
-          navigate("/admin/products");
-          return;
-        }
-
-        if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
+        if (profileError || !profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
           toast({
             title: "Acesso negado",
             description: "Você não tem permissão para criar produtos.",
             variant: "destructive",
           });
           navigate("/admin/products");
+          return;
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -119,8 +81,6 @@ const CreateProduct = () => {
 
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
-      console.log("Creating product with values:", values);
-      
       const processedVariations = values.variations.map(v => ({
         name: v.name,
         options: v.options.split(',').map(o => o.trim()),
@@ -171,11 +131,7 @@ const CreateProduct = () => {
 
   const addVariation = () => {
     const currentVariations = form.getValues("variations");
-    const newVariation: ProductVariation = {
-      name: "",
-      options: "",
-    };
-    form.setValue("variations", [...currentVariations, newVariation]);
+    form.setValue("variations", [...currentVariations, { name: "", options: "" }]);
   };
 
   const removeVariation = (index: number) => {
@@ -187,7 +143,6 @@ const CreateProduct = () => {
   };
 
   const onSubmit = async (values: ProductFormValues) => {
-    console.log("Form submitted with values:", values);
     try {
       await createProduct.mutateAsync(values);
     } catch (error) {
@@ -201,25 +156,7 @@ const CreateProduct = () => {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto p-4 md:p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin/products")}
-            className="hover:bg-secondary"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Novo Produto</h1>
-            <p className="text-muted-foreground">
-              Adicione um novo produto ao catálogo
-            </p>
-          </div>
-        </div>
-      </div>
+      <CreateProductHeader />
 
       <Card className="border-2 border-muted shadow-md">
         <CardHeader className="space-y-1">
@@ -234,99 +171,13 @@ const CreateProduct = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid gap-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        Nome do Produto
-                      </FormLabel>
-                      <FormControl>
-                        <Input {...field} className="bg-background" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="bg-background" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sku"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SKU</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="bg-background" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preço</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="bg-background" placeholder="0.00" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <FormLabel>Variações</FormLabel>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addVariation}
-                      className="hover:bg-primary hover:text-white transition-colors"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Variação
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {form.watch("variations").map((_, index) => (
-                      <VariationField
-                        key={index}
-                        form={form}
-                        index={index}
-                        onRemove={() => removeVariation(index)}
-                      />
-                    ))}
-                  </div>
-
-                  <StockMatrix
-                    form={form}
-                    variations={form.watch("variations")}
-                  />
-                </div>
-              </div>
+              <BasicProductInfo form={form} />
+              
+              <ProductVariations
+                form={form}
+                onAddVariation={addVariation}
+                onRemoveVariation={removeVariation}
+              />
 
               <Button 
                 type="submit" 
