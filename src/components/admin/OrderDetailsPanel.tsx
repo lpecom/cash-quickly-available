@@ -9,12 +9,20 @@ import { Download, Package, Clock, MapPin, User, DollarSign, CalendarDays, Arrow
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { orderStatusMap } from "@/types/order";
 
 interface OrderDetailsPanelProps {
   order: Order | null;
 }
 
 export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<Order["status"]>(order?.status || "pending");
+
   if (!order) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -22,6 +30,31 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
       </div>
     );
   }
+
+  const handleStatusChange = async (newStatus: Order["status"]) => {
+    try {
+      setIsUpdating(true);
+      console.log('Updating order status:', { orderId: order.id, newStatus });
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', order.id);
+
+      if (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+      }
+
+      setCurrentStatus(newStatus);
+      toast.success(`Status atualizado para ${orderStatusMap[newStatus]}`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error("Erro ao atualizar status do pedido");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const timelineEvents = [
     {
@@ -78,7 +111,24 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <OrderStatusBadge status={order.status} />
+          <Select
+            value={currentStatus}
+            onValueChange={handleStatusChange}
+            disabled={isUpdating}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                <OrderStatusBadge status={currentStatus} />
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(orderStatusMap).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  <OrderStatusBadge status={value as Order["status"]} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="w-4 h-4" />
             Exportar
