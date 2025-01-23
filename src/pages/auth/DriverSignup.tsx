@@ -89,7 +89,7 @@ const DriverSignup = () => {
           state: data.state,
           postal_code: data.postalCode,
         })
-        .eq("email", data.email);
+        .eq("id", (await supabase.auth.getUser()).data.user?.id);
 
       if (profileError) throw profileError;
 
