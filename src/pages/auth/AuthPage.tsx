@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Bike } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -147,7 +147,7 @@ const AuthPage = () => {
           </form>
         </Form>
 
-        <div className="text-center">
+        <div className="space-y-2 text-center">
           <Button
             variant="link"
             onClick={() => setIsSignUp(!isSignUp)}
@@ -156,6 +156,24 @@ const AuthPage = () => {
             {isSignUp
               ? "Already have an account? Sign in"
               : "Don't have an account? Sign up"}
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-muted"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() => navigate("/driver-signup")}
+          >
+            <Bike className="h-4 w-4" />
+            Sign up as a Driver
           </Button>
         </div>
       </Card>
