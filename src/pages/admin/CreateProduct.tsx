@@ -239,8 +239,14 @@ const CreateProduct = () => {
                 className="w-full"
                 disabled={isLoading}
               >
-                <Save className="h-4 w-4 mr-2" />
-                Criar Produto
+                {isLoading ? (
+                  "Criando..."
+                ) : (
+                  <>
+                    <Box className="h-4 w-4 mr-2" />
+                    Criar Produto
+                  </>
+                )}
               </Button>
             </form>
           </Form>
