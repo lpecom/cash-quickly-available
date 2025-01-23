@@ -28,18 +28,29 @@ export default function Checkout() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: product, isLoading } = useQuery({
+  const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
+      if (!productId) throw new Error("Product ID is required");
+
       const { data, error } = await supabase
         .from("products")
         .select("*")
         .eq("id", productId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching product:", error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error("Product not found");
+      }
+
       return data as Product;
     },
+    retry: false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,12 +68,12 @@ export default function Checkout() {
     try {
       // Validate required fields
       if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
-        toast.error("Please fill in all required fields");
+        toast.error("Por favor, preencha todos os campos obrigatórios");
         return;
       }
 
       if (!product) {
-        toast.error("Product information not available");
+        toast.error("Informações do produto não disponíveis");
         return;
       }
 
@@ -117,7 +128,7 @@ export default function Checkout() {
       navigate(`/success?orderId=${order.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
-      toast.error("Failed to place order. Please try again.");
+      toast.error("Falha ao criar pedido. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -141,14 +152,14 @@ export default function Checkout() {
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-orange-300 p-4 md:p-8 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <p className="text-lg text-gray-500">Product not found</p>
+            <p className="text-lg text-gray-500">Produto não encontrado</p>
             <Button className="mt-4" onClick={() => navigate("/")}>
-              Return Home
+              Voltar para Home
             </Button>
           </CardContent>
         </Card>
