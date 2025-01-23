@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -17,8 +17,13 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Save, Package, TrendingUp, ShoppingCart, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { ProductFormValues, productSchema } from "@/types/product";
+import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
 import { MetricCard } from "@/components/MetricCard";
+
+interface DbProductVariation {
+  name: string;
+  options: string[];
+}
 
 const AdminProductDetails = () => {
   const { productId } = useParams();
@@ -117,14 +122,15 @@ const AdminProductDetails = () => {
   });
 
   // Update form values when product data is loaded
-  useEffect(() => {
+  React.useEffect(() => {
     if (product) {
-      const variations = Array.isArray(product.variations) 
-        ? product.variations 
-        : [];
+      const variations = (product.variations as DbProductVariation[] || []).map(v => ({
+        name: v.name || "",
+        options: Array.isArray(v.options) ? v.options.join(', ') : ""
+      }));
       
       const stock = typeof product.stock === 'object' && product.stock !== null
-        ? product.stock
+        ? product.stock as Record<string, string>
         : {};
 
       form.reset({
@@ -132,11 +138,8 @@ const AdminProductDetails = () => {
         description: product.description || "",
         sku: product.sku || "",
         price: product.price.toString(),
-        variations: variations.map(v => ({
-          name: v.name || "",
-          options: Array.isArray(v.options) ? v.options.join(', ') : v.options || ""
-        })),
-        stock: stock as Record<string, string>,
+        variations: variations,
+        stock: stock,
       });
     }
   }, [product, form]);
