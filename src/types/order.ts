@@ -29,6 +29,7 @@ export interface OrderProduct {
   product: Product;
 }
 
+// Base order type matching Supabase schema
 export interface Order {
   id: string;
   customer_name: string;
@@ -41,4 +42,19 @@ export interface Order {
   driver_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+// Extended order type for UI with additional fields
+export interface OrderWithDetails extends Order {
+  products?: OrderProduct[];
+  timeline?: TimelineEvent[];
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: "status_change" | "call" | "message";
+  timestamp: Date;
+  description: string;
+  status?: OrderStatus;
+  agent?: string;
 }

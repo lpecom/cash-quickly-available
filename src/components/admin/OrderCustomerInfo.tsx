@@ -23,7 +23,7 @@ export const OrderCustomerInfo = ({ order }: OrderCustomerInfoProps) => {
       <h2 className="text-xl font-semibold">Informações do Cliente</h2>
       <div>
         <p className="font-medium">Nome</p>
-        <p>{order.customer}</p>
+        <p>{order.customer_name}</p>
       </div>
       <div>
         <p className="font-medium">Endereço</p>
