@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, MessageCircle, Package, ScrollText, LoaderCircle } from "lucide-react";
+import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { DeliveryButtons } from "./DeliveryButtons";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface OrderCardProps {
   order: {
     id: string;
-    customer: string;
+    customer_name: string;
     address: string;
     status: string;
     amount: string;
@@ -23,7 +23,7 @@ interface OrderCardProps {
   onContactCustomer: (phone: string, orderId: string) => void;
 }
 
-export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCardProps) => {
+export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
   const handleAcceptOrder = async () => {
     try {
       const { error } = await supabase
@@ -45,92 +45,44 @@ export const OrderCard = ({ order, onStartDelivery, onContactCustomer }: OrderCa
   };
 
   return (
-    <div
-      className={`
-        ${order.isRecommended ? "bg-primary/10" : "bg-card"}
-        rounded-lg shadow-sm p-4 space-y-3 relative
-        before:absolute before:inset-0 before:rounded-lg before:p-[2px]
-        before:bg-gradient-to-r before:from-green-400 before:via-primary before:to-green-600
-        before:content-[''] before:opacity-0 before:transition-opacity
-        ${order.status === "in_progress" ? "before:opacity-100" : ""}
-      `}
-    >
-      <div className="relative bg-background rounded-lg p-4 space-y-3">
-        <div className="flex justify-between items-start">
+    <div className="bg-card rounded-lg shadow-sm p-4 space-y-4">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <Package className="w-6 h-6" />
           <div>
-            {order.isRecommended && (
-              <div className="flex items-center gap-2 mb-2">
-                <Navigation className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold">Entrega Mais Próxima</h2>
-              </div>
-            )}
-            <h3 className="font-medium">Pedido #{order.id}</h3>
-            <p className="text-sm text-muted-foreground">{order.customer}</p>
+            <h3 className="font-medium">Pedido #{order.id.slice(0, 8)}</h3>
+            <p className="text-muted-foreground">Cliente: {order.customer_name}</p>
           </div>
-          <Badge
-            variant={order.status === "in_progress" ? "default" : "secondary"}
-            className={`flex items-center gap-1 ${order.status === "in_progress" ? "animate-pulse" : ""}`}
-          >
-            {order.status === "in_progress" && (
-              <LoaderCircle className="w-3 h-3 animate-spin" />
-            )}
-            {order.status === "in_progress" ? "Em andamento" : "Pendente"}
-          </Badge>
         </div>
-
-        <div className="flex items-start gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-          <span className="flex-1">{order.address}</span>
-        </div>
-
-        {order.products && order.products.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Package className="w-4 h-4 text-muted-foreground" />
-              <span>Produtos</span>
-            </div>
-            <ul className="text-sm space-y-1 pl-6">
-              {order.products.map((product, index) => (
-                <li key={index}>
-                  {product.quantity}x {product.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {order.deliveryInstructions && (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <ScrollText className="w-4 h-4 text-muted-foreground" />
-              <span>Instruções</span>
-            </div>
-            <p className="text-sm text-muted-foreground pl-6">{order.deliveryInstructions}</p>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between text-sm">
-          <span>{order.amount}</span>
-          <span>{order.items}</span>
-        </div>
-
-        {order.status === "pending" ? (
-          <Button
-            className="w-full"
-            onClick={handleAcceptOrder}
-          >
-            <Navigation className="w-4 h-4 mr-2" />
-            Iniciar Entrega
-          </Button>
-        ) : (
-          <DeliveryButtons 
-            orderId={order.id}
-            phone={order.phone}
-            address={order.address}
-            acceptedAt={order.accepted_at}
-          />
-        )}
+        <Badge variant={order.status === "on_route" ? "default" : "secondary"}>
+          {order.status === "on_route" ? "Em rota" : "Pendente"}
+        </Badge>
       </div>
+
+      <div className="space-y-2">
+        <p className="text-sm">
+          <span className="font-medium">Endereço:</span> {order.address}
+        </p>
+        <p className="text-sm">
+          <span className="font-medium">Telefone:</span> {order.phone}
+        </p>
+      </div>
+
+      {order.status === "pending" ? (
+        <Button
+          className="w-full"
+          onClick={handleAcceptOrder}
+        >
+          Iniciar Entrega
+        </Button>
+      ) : (
+        <DeliveryButtons 
+          orderId={order.id}
+          phone={order.phone}
+          address={order.address}
+          acceptedAt={order.accepted_at}
+        />
+      )}
     </div>
   );
 };
