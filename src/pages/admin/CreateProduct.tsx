@@ -25,6 +25,7 @@ import * as z from "zod";
 import { ArrowLeft, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -40,6 +41,25 @@ const CreateProduct = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is admin on component mount
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const role = session?.user?.user_metadata?.role;
+      
+      if (!session || (role !== 'admin' && role !== 'superadmin')) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para criar produtos.",
+          variant: "destructive",
+        });
+        navigate("/admin/products");
+      }
+    };
+
+    checkAdminAccess();
+  }, [navigate, toast]);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -62,7 +82,12 @@ const CreateProduct = () => {
         },
       ]);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42501') {
+          throw new Error("Você não tem permissão para criar produtos.");
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -73,11 +98,11 @@ const CreateProduct = () => {
       });
       navigate("/admin/products");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Error creating product:", error);
       toast({
         title: "Erro ao criar produto",
-        description: "Ocorreu um erro ao criar o produto.",
+        description: error.message || "Ocorreu um erro ao criar o produto.",
         variant: "destructive",
       });
     },
