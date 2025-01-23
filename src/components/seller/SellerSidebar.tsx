@@ -1,78 +1,54 @@
-import {
-  LayoutDashboard,
-  Package,
-  DollarSign,
-  Settings,
-  ShoppingCart,
-  HeadphonesIcon,
-  PuzzleIcon,
-} from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Package, Settings, Store } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 
-const menuItems = [
-  { title: "Dashboard", icon: LayoutDashboard, url: "/seller" },
-  { title: "Produtos", icon: Package, url: "/seller/products" },
-  { title: "Pedidos", icon: ShoppingCart, url: "/seller/orders" },
-  { title: "Financeiro", icon: DollarSign, url: "/seller/finance" },
-  { title: "Integrações", icon: PuzzleIcon, url: "/seller/integrations" },
-  { title: "Suporte", icon: HeadphonesIcon, url: "/seller/support" },
-  { title: "Configurações", icon: Settings, url: "/seller/settings" },
-];
-
-export function SellerSidebar() {
-  const location = useLocation();
+export const SellerSidebar = () => {
+  const menuItems = [
+    {
+      title: "Dashboard",
+      icon: Store,
+      href: "/seller",
+    },
+    {
+      title: "Catálogo",
+      icon: Package,
+      href: "/seller/catalog",
+    },
+    {
+      title: "Configurações",
+      icon: Settings,
+      href: "/seller/settings",
+    },
+  ];
 
   return (
     <Sidebar>
-      <SidebarContent>
-        <SidebarHeader>
-          <div className="p-6">
-            <div className="flex items-center justify-center">
-              <img 
-                src="https://www.paguequandochegar.com/cdn/shop/files/LOGO-min.png?v=1732965324" 
-                alt="Pague Quando Chegar Logo" 
-                className="h-12 object-contain"
-              />
-            </div>
-          </div>
-        </SidebarHeader>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/70">
-            Gerenciamento
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.url}
-                  >
-                    <Link
-                      to={item.url}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-muted-foreground/80 transition-colors hover:text-primary data-[active=true]:text-primary"
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="py-4">
+        <nav className="space-y-1 px-2">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              className={({ isActive }) =>
+                cn(
+                  "w-full",
+                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                )
+              }
+            >
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2"
+              >
+                <item.icon className="h-5 w-5" />
+                {item.title}
+              </Button>
+            </NavLink>
+          ))}
+        </nav>
       </SidebarContent>
     </Sidebar>
   );
-}
+};
