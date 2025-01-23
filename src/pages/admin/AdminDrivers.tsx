@@ -7,6 +7,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const mapOrderStatusToDeliveryStatus = (
+  orderStatus: string
+): "completed" | "failed" | "cancelled" => {
+  switch (orderStatus) {
+    case "delivered":
+      return "completed";
+    case "not_delivered":
+      return "failed";
+    default:
+      return "cancelled";
+  }
+};
+
 const AdminDrivers = () => {
   const { data: drivers, isLoading: isLoadingDrivers } = useQuery({
     queryKey: ['drivers'],
@@ -65,8 +78,7 @@ const AdminDrivers = () => {
         date: new Date(order.created_at),
         customer: order.customer_name,
         amount: order.total,
-        status: order.status === 'delivered' ? 'completed' : 
-                order.status === 'not_delivered' ? 'failed' : 'cancelled',
+        status: mapOrderStatusToDeliveryStatus(order.status),
         commission: order.commission || 0
       }));
     }
