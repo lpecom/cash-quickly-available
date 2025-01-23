@@ -38,25 +38,25 @@ export function Header() {
   if (!profile) return null;
 
   return (
-    <header className="border-b">
-      <div className="flex h-16 items-center px-4 gap-4">
+    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center px-8">
         <div className="ml-auto flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Avatar>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
               <AvatarFallback>
-                <User className="h-5 w-5" />
+                <User className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
             <div className="hidden md:block">
-              <p className="text-sm font-medium">{profile.full_name}</p>
-              <p className="text-xs text-muted-foreground capitalize">{profile.role}</p>
+              <p className="text-sm font-medium leading-none">{profile.full_name}</p>
+              <p className="text-xs text-muted-foreground mt-1 capitalize">{profile.role}</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
     </header>
   );
-}
+};

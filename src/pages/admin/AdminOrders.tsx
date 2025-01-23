@@ -114,40 +114,44 @@ const AdminOrders = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
         <div className="animate-pulse text-muted-foreground">Loading orders...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and track all customer orders
-          </p>
+    <div className="space-y-8">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Orders
+            </h1>
+            <p className="text-base text-muted-foreground mt-1">
+              Manage and track all customer orders
+            </p>
+          </div>
+          <Button asChild>
+            <Link to="/admin/orders/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Order
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link to="/admin/orders/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Order
-          </Link>
-        </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="rounded-lg border bg-card shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead className="hidden md:table-cell">Address</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[100px] font-medium">ID</TableHead>
+              <TableHead className="font-medium">Customer</TableHead>
+              <TableHead className="hidden md:table-cell font-medium">Address</TableHead>
+              <TableHead className="font-medium">Status</TableHead>
+              <TableHead className="text-right font-medium">Total</TableHead>
+              <TableHead className="hidden md:table-cell font-medium">Date</TableHead>
+              <TableHead className="w-[100px] font-medium">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -158,11 +162,11 @@ const AdminOrders = () => {
                   loadingOrderId === order.id ? "animate-pulse" : ""
                 }`}
               >
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-sm">
                   #{order.id.slice(0, 8)}
                 </TableCell>
-                <TableCell>{order.customer_name}</TableCell>
-                <TableCell className="hidden md:table-cell max-w-[200px] truncate">
+                <TableCell className="text-sm">{order.customer_name}</TableCell>
+                <TableCell className="hidden md:table-cell max-w-[200px] truncate text-sm">
                   {order.address}
                 </TableCell>
                 <TableCell>
@@ -188,10 +192,10 @@ const AdminOrders = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right font-medium text-sm">
                   R$ {order.total.toFixed(2)}
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
@@ -212,7 +216,7 @@ const AdminOrders = () => {
         open={pendingStatusChange !== null}
         onOpenChange={(open) => !open && setPendingStatusChange(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm status change</AlertDialogTitle>
             <AlertDialogDescription>
