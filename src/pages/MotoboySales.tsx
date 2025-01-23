@@ -5,7 +5,7 @@ import { Plus, Package, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Order {
   id: string;
@@ -21,7 +21,8 @@ const fetchOrders = async () => {
   const { data, error } = await supabase
     .from("orders")
     .select("*")
-    .eq("status", "pending")
+    .eq("status", "confirmed")
+    .is("driver_id", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -33,21 +34,29 @@ const fetchOrders = async () => {
 };
 
 const MotoboySales = () => {
+  const queryClient = useQueryClient();
   const { data: orders = [], isLoading, error } = useQuery({
-    queryKey: ["pending-orders"],
+    queryKey: ["confirmed-orders"],
     queryFn: fetchOrders,
+    refetchInterval: 5000, // Refresh every 5 seconds to get new orders
   });
 
-  const handleAddItem = async (orderId: string) => {
+  const handleAcceptOrder = async (orderId: string) => {
     try {
       const { error } = await supabase
         .from("orders")
-        .update({ driver_id: (await supabase.auth.getUser()).data.user?.id })
-        .eq("id", orderId);
+        .update({ 
+          status: "on_route",
+          driver_id: (await supabase.auth.getUser()).data.user?.id 
+        })
+        .eq("id", orderId)
+        .eq("status", "confirmed")
+        .is("driver_id", null);
 
       if (error) throw error;
 
       toast.success("Pedido aceito com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["confirmed-orders"] });
     } catch (error) {
       console.error("Error accepting order:", error);
       toast.error("Erro ao aceitar pedido");
@@ -118,7 +127,7 @@ const MotoboySales = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleAddItem(order.id)}
+                    onClick={() => handleAcceptOrder(order.id)}
                     className="gap-2"
                   >
                     <Plus className="w-4 h-4" />
