@@ -5,7 +5,7 @@ import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminProducts from "@/pages/admin/AdminProducts";
 import AdminDrivers from "@/pages/admin/AdminDrivers";
 import AdminSettings from "@/pages/admin/AdminSettings";
-import OrderDetails from "@/pages/admin/OrderDetails";
+import OrderDetails from "@/pages/admin/AdminOrderDetails";
 import CreateOrder from "@/pages/admin/CreateOrder";
 import { Toaster } from "sonner";
 
