@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { Package, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OrderCard } from "@/components/delivery/OrderCard";
 import MobileNav from "@/components/MobileNav";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type Order = Tables<"orders">;
 
@@ -17,14 +18,24 @@ const MotoboyDashboard = () => {
   } | null>(null);
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ["motoboy-orders"],
+    queryKey: ["available-orders"],
     queryFn: async () => {
-      console.log("Fetching orders...");
+      console.log("Fetching available orders...");
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
-        .eq("driver_id", (await supabase.auth.getUser()).data.user?.id)
-        .eq("status", "on_route");
+        .select(`
+          *,
+          order_items (
+            quantity,
+            price_at_time,
+            products (
+              name
+            )
+          )
+        `)
+        .eq("status", "confirmed")
+        .is("driver_id", null)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       console.log("Orders fetched:", data);
@@ -52,7 +63,7 @@ const MotoboyDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-secondary">
-        <p>Carregando...</p>
+        <p>Carregando pedidos disponíveis...</p>
       </div>
     );
   }
@@ -62,11 +73,21 @@ const MotoboyDashboard = () => {
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <div className="container mx-auto p-4">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold">Pedidos em Rota</h1>
+            <h1 className="text-2xl font-bold">Pedidos Disponíveis</h1>
             <p className="text-muted-foreground">
-              {orders?.length || 0} pedidos ativos
+              {orders?.length || 0} pedidos aguardando entregador
             </p>
           </div>
+
+          {!currentLocation && (
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Atenção</AlertTitle>
+              <AlertDescription>
+                Ative sua localização para ver a distância até os pedidos
+              </AlertDescription>
+            </Alert>
+          )}
           
           <div className="space-y-4">
             {orders?.map((order) => (
@@ -78,20 +99,27 @@ const MotoboyDashboard = () => {
                   address: order.address,
                   status: order.status,
                   amount: `R$ ${order.total.toFixed(2)}`,
-                  items: `${order.total} items`,
+                  items: `${order.order_items?.length || 0} items`,
                   phone: order.phone,
                   accepted_at: order.accepted_at,
                   created_at: order.created_at,
                   total: order.total,
                   deliveryInstructions: order.delivery_instructions || undefined,
+                  products: order.order_items?.map((item: any) => ({
+                    name: item.products?.name || 'Produto',
+                    quantity: item.quantity
+                  }))
                 }}
                 onStartDelivery={() => {}}
                 onContactCustomer={() => {}}
               />
             ))}
             {orders?.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum pedido em rota no momento
+              <div className="text-center py-8 bg-white rounded-lg shadow-sm">
+                <Package className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">
+                  Nenhum pedido disponível no momento
+                </p>
               </div>
             )}
           </div>

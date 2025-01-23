@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, Navigation, DollarSign, Clock } from "lucide-react";
+import { Package, MapPin, Navigation, DollarSign, Clock, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { DeliveryButtons } from "./DeliveryButtons";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,6 +104,19 @@ export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
             )}
           </div>
         </div>
+
+        {order.products && order.products.length > 0 && (
+          <div className="flex items-start gap-2">
+            <ShoppingBag className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
+            <div className="space-y-1">
+              {order.products.map((product, index) => (
+                <p key={index} className="text-sm text-muted-foreground">
+                  {product.quantity}x {product.name}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-2">
