@@ -6,6 +6,7 @@ import { MapPin, Phone, ChevronDown, Copy, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface DashboardOrderListProps {
   orders: Array<{
@@ -22,9 +23,11 @@ interface DashboardOrderListProps {
       quantity: number;
     }>;
   }>;
+  selectedOrderId?: string | null;
+  onOrderSelect?: (orderId: string) => void;
 }
 
-export function DashboardOrderList({ orders }: DashboardOrderListProps) {
+export function DashboardOrderList({ orders, selectedOrderId, onOrderSelect }: DashboardOrderListProps) {
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success("ID copiado!");
@@ -76,7 +79,14 @@ export function DashboardOrderList({ orders }: DashboardOrderListProps) {
 
       <div className="space-y-4">
         {orders.map((order) => (
-          <Card key={order.id} className="p-4 hover:shadow-md transition-shadow">
+          <Card 
+            key={order.id} 
+            className={cn(
+              "p-4 hover:shadow-md transition-shadow cursor-pointer",
+              selectedOrderId === order.id && "ring-2 ring-primary"
+            )}
+            onClick={() => onOrderSelect?.(order.id)}
+          >
             <div className="space-y-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -85,7 +95,10 @@ export function DashboardOrderList({ orders }: DashboardOrderListProps) {
                       Pedido #{order.id.slice(0, 8)}
                     </h3>
                     <button
-                      onClick={() => handleCopyId(order.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopyId(order.id);
+                      }}
                       className="text-muted-foreground hover:text-primary"
                     >
                       <Copy className="w-4 h-4" />
@@ -128,23 +141,12 @@ export function DashboardOrderList({ orders }: DashboardOrderListProps) {
                 </div>
                 <Link
                   to={`tel:${order.phone}`}
+                  onClick={(e) => e.stopPropagation()}
                   className="flex items-center gap-2 text-primary hover:text-primary/80"
                 >
                   <Phone className="w-4 h-4" />
                   <span>{order.phone}</span>
                 </Link>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t">
-                <Link
-                  to={`/admin/orders/${order.id}`}
-                  className="text-sm font-medium text-primary hover:text-primary/80"
-                >
-                  Ver detalhes
-                </Link>
-                <Button variant="ghost" size="sm">
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </Card>

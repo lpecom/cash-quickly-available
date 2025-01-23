@@ -9,12 +9,15 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardOrderList } from "@/components/admin/DashboardOrderList";
+import { OrderDetailsPanel } from "@/components/admin/OrderDetailsPanel";
 
 const AdminDashboard: React.FC = () => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
   });
+
+  const [selectedOrderId, setSelectedOrderId] = React.useState<string | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-dashboard-stats', dateRange],
@@ -81,8 +84,7 @@ const AdminDashboard: React.FC = () => {
             )
           )
         `)
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -207,9 +209,23 @@ const AdminDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {!ordersLoading && orders && (
-        <DashboardOrderList orders={orders} />
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] gap-6">
+        <div className="space-y-4">
+          {!ordersLoading && orders && (
+            <DashboardOrderList 
+              orders={orders} 
+              selectedOrderId={selectedOrderId}
+              onOrderSelect={setSelectedOrderId}
+            />
+          )}
+        </div>
+        
+        <div>
+          {selectedOrderId && (
+            <OrderDetailsPanel orderId={selectedOrderId} />
+          )}
+        </div>
+      </div>
     </div>
   );
 };
