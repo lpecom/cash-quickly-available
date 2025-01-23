@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike } from "lucide-react";
+import { Bike, Building2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -27,6 +27,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const role = location.state?.role || 'motoboy';
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -48,7 +50,7 @@ const AuthPage = () => {
       if (error) throw error;
 
       toast.success("Login realizado com sucesso!");
-      navigate("/motoboy");
+      navigate(role === 'admin' ? "/admin" : "/entregas");
     } catch (error) {
       console.error("Error signing in:", error);
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
@@ -57,15 +59,18 @@ const AuthPage = () => {
     }
   };
 
+  const Icon = role === 'admin' ? Building2 : Bike;
+  const title = role === 'admin' ? 'Área Administrativa' : 'Área do Entregador';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Bike className="w-6 h-6 text-primary" />
+            <Icon className="w-6 h-6 text-primary" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Bem-vindo de volta!
+            {title}
           </h1>
           <p className="text-muted-foreground">
             Faça login para continuar
