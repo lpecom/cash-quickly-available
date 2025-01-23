@@ -16,6 +16,7 @@ import MotoboyPayments from "./pages/MotoboyPayments";
 import MotoboySales from "./pages/MotoboySales";
 import OrderDetails from "./pages/OrderDetails";
 import AuthPage from "./pages/auth/AuthPage";
+import Checkout from "./pages/Checkout";
 import "./App.css";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/checkout/:productId" element={<Checkout />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
