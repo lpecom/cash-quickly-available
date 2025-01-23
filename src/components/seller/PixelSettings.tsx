@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Facebook, Globe, Share2, BarChart } from "lucide-react";
 import { toast } from "sonner";
 
 interface PixelSettingsProps {
@@ -70,10 +69,7 @@ export function PixelSettings({ config }: PixelSettingsProps) {
               name="facebook"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Facebook className="h-4 w-4" />
-                    Facebook Pixel ID
-                  </FormLabel>
+                  <FormLabel>Facebook Pixel ID</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your Facebook Pixel ID" {...field} />
                   </FormControl>
@@ -88,10 +84,7 @@ export function PixelSettings({ config }: PixelSettingsProps) {
               name="google"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Google Tag ID
-                  </FormLabel>
+                  <FormLabel>Google Tag ID</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your Google Tag ID" {...field} />
                   </FormControl>
@@ -106,10 +99,7 @@ export function PixelSettings({ config }: PixelSettingsProps) {
               name="tiktok"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Share2 className="h-4 w-4" />
-                    TikTok Pixel ID
-                  </FormLabel>
+                  <FormLabel>TikTok Pixel ID</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your TikTok Pixel ID" {...field} />
                   </FormControl>
@@ -124,10 +114,7 @@ export function PixelSettings({ config }: PixelSettingsProps) {
               name="taboola"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <BarChart className="h-4 w-4" />
-                    Taboola Pixel ID
-                  </FormLabel>
+                  <FormLabel>Taboola Pixel ID</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your Taboola Pixel ID" {...field} />
                   </FormControl>
