@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Save, Package, TrendingUp, ShoppingCart, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
+import { ProductFormValues, productSchema } from "@/types/product";
 import { MetricCard } from "@/components/MetricCard";
 
 interface DbProductVariation {
@@ -124,7 +124,9 @@ const AdminProductDetails = () => {
   // Update form values when product data is loaded
   useEffect(() => {
     if (product) {
-      const variations = (product.variations as DbProductVariation[] || []).map(v => ({
+      // Safely cast variations to the correct type and handle potential null/undefined
+      const productVariations = product.variations as { name: string; options: string[] }[] || [];
+      const variations = productVariations.map(v => ({
         name: v.name || "",
         options: Array.isArray(v.options) ? v.options.join(', ') : ""
       }));
