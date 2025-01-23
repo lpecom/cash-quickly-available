@@ -1,26 +1,25 @@
-import { useState } from "react";
+import { OrdersMenu } from "@/components/admin/orders/OrdersMenu";
+import { OrderFilters } from "@/components/admin/orders/OrderFilters";
+import { Button } from "@/components/ui/button";
+import { Plus, Package } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Order } from "@/types/order";
-import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useState } from "react";
 import { format } from "date-fns";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const AdminOrders = () => {
+  const [filters, setFilters] = useState({
+    dateRange: undefined,
+    status: undefined,
+    search: undefined,
+  });
+
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', filters],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('orders')
         .select(`
           *,
@@ -47,30 +46,69 @@ const AdminOrders = () => {
         `)
         .order('created_at', { ascending: false });
 
+      if (filters.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.from.toISOString())
+          .lte('created_at', filters.dateRange.to.toISOString());
+      }
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.search) {
+        query = query.or(`customer_name.ilike.%${filters.search}%,id.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      return data as Order[];
+      return data;
     },
   });
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-        <div className="animate-pulse text-muted-foreground">Loading orders...</div>
+      <div className="container mx-auto p-4 space-y-6">
+        <div>Loading orders...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Pedidos</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <Package className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Pedidos</h1>
+      </div>
+
+      <OrdersMenu />
+      
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Orders</h1>
+        <p className="text-muted-foreground">
+          {orders?.length || 0} pedidos encontrados
+        </p>
         <Link to="/admin/orders/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Order
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Pedido
           </Button>
         </Link>
       </div>
+
+      <OrderFilters onFiltersChange={setFilters} />
 
       <div className="rounded-lg border bg-card">
         <Table>
@@ -101,7 +139,7 @@ const AdminOrders = () => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <OrderStatusBadge status={order.status as Order['status']} />
+                  <OrderStatusBadge status={order.status} />
                 </TableCell>
                 <TableCell>R$ {order.total.toFixed(2)}</TableCell>
                 <TableCell>

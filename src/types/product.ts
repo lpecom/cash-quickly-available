@@ -1,23 +1,79 @@
-import { z } from "zod";
+export interface ProductFormValues {
+  name: string;
+  description: string;
+  price: number;
+  sku: string;
+  supplier_id?: string;
+  variations?: ProductVariation[];
+}
 
 export interface ProductVariation {
   name: string;
-  options: string;
+  options: string[];
 }
 
-export const productSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  description: z.string().optional(),
-  sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
-  price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
-  supplier_id: z.string().uuid("Fornecedor inválido").optional(),
-  variations: z.array(
-    z.object({
-      name: z.string().min(1, "Nome da variação é obrigatório"),
-      options: z.string().min(1, "Opções são obrigatórias"),
-    })
-  ),
-  stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
-});
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "on_route"
+  | "delivered"
+  | "not_delivered";
 
-export type ProductFormValues = z.infer<typeof productSchema>;
+export const orderStatusMap: Record<OrderStatus, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  on_route: "Em rota",
+  delivered: "Entregue",
+  not_delivered: "Não entregue",
+};
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  active: boolean | null;
+  created_at: string;
+  updated_at: string;
+  image_url?: string | null;
+}
+
+export interface OrderProduct {
+  id: string;
+  product: Product;
+  quantity: number;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string | null;
+  product_id: string | null;
+  quantity: number;
+  price_at_time: number;
+  created_at: string;
+  product?: Product;
+}
+
+export interface Order {
+  id: string;
+  customer_name: string;
+  customer_id: string | null;
+  address: string;
+  status: string;
+  total: number;
+  phone: string;
+  delivery_instructions: string | null;
+  driver_id: string | null;
+  created_at: string;
+  updated_at: string;
+  items?: OrderItem[];
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: "status_change" | "call" | "message";
+  timestamp: Date;
+  description: string;
+  status?: OrderStatus;
+  agent?: string;
+}
