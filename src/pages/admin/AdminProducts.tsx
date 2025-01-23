@@ -35,8 +35,8 @@ const AdminProducts = () => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to fetch products",
+          title: "Erro",
+          description: "Falha ao carregar produtos",
           variant: "destructive",
         });
         throw error;
@@ -58,22 +58,22 @@ const AdminProducts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
-        title: "Success",
-        description: "Product deleted successfully",
+        title: "Sucesso",
+        description: "Produto excluído com sucesso",
       });
     },
     onError: (error) => {
-      console.error("Error deleting product:", error);
+      console.error("Erro ao excluir produto:", error);
       toast({
-        title: "Error",
-        description: "Failed to delete product",
+        title: "Erro",
+        description: "Falha ao excluir produto",
         variant: "destructive",
       });
     },
   });
 
   const handleDeleteProduct = async (productId: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
+    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
       deleteProduct.mutate(productId);
     }
   };
@@ -91,30 +91,30 @@ const AdminProducts = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Products</BreadcrumbPage>
+            <BreadcrumbPage>Produtos</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex items-center gap-2">
         <Package className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Products</h1>
+        <h1 className="text-2xl font-bold">Produtos</h1>
       </div>
 
       <ProductsMenu />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-lg font-medium">Product List</CardTitle>
+          <CardTitle className="text-lg font-medium">Lista de Produtos</CardTitle>
           <Button onClick={() => navigate("/admin/products/new")}>
             <Plus className="mr-2 h-4 w-4" />
-            New Product
+            Novo Produto
           </Button>
         </CardHeader>
         <CardContent>
           <div className="mb-6">
             <Input
-              placeholder="Search products..."
+              placeholder="Buscar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -125,24 +125,24 @@ const AdminProducts = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Preço</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-4">
-                      Loading products...
+                      Carregando produtos...
                     </TableCell>
                   </TableRow>
                 ) : filteredProducts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-4">
-                      No products found
+                      Nenhum produto encontrado
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -159,7 +159,7 @@ const AdminProducts = () => {
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}>
-                          {product.active ? "Active" : "Inactive"}
+                          {product.active ? "Ativo" : "Inativo"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

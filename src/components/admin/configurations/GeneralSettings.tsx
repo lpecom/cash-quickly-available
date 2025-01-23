@@ -44,11 +44,11 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['configurations'] });
-      toast.success("Settings updated successfully");
+      toast.success("Configurações atualizadas com sucesso");
     },
     onError: (error) => {
-      toast.error("Failed to update settings");
-      console.error("Error updating settings:", error);
+      toast.error("Falha ao atualizar configurações");
+      console.error("Erro ao atualizar configurações:", error);
     },
   });
 
@@ -59,9 +59,9 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>General Settings</CardTitle>
+        <CardTitle>Configurações Gerais</CardTitle>
         <CardDescription>
-          Configure your business information and operating hours
+          Configure as informações do seu negócio e horário de funcionamento
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -72,7 +72,7 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Business Name</FormLabel>
+                  <FormLabel>Nome da Empresa</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -84,7 +84,7 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Endereço</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -96,7 +96,7 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Telefone</FormLabel>
                   <FormControl>
                     <Input {...field} type="tel" />
                   </FormControl>
@@ -108,7 +108,7 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>E-mail</FormLabel>
                   <FormControl>
                     <Input {...field} type="email" />
                   </FormControl>
@@ -120,18 +120,18 @@ export function GeneralSettings({ config }: GeneralSettingsProps) {
               name="timezone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Timezone</FormLabel>
+                  <FormLabel>Fuso Horário</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    Enter timezone in format: UTC, America/New_York, etc.
+                    Digite o fuso horário no formato: UTC, America/Sao_Paulo, etc.
                   </FormDescription>
                 </FormItem>
               )}
             />
             <Button type="submit" className="mt-4">
-              Save Changes
+              Salvar Alterações
             </Button>
           </form>
         </Form>
