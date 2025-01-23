@@ -38,10 +38,7 @@ const AdminOrderDetails = () => {
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
     queryFn: async () => {
-      // Don't fetch if we're creating a new order
-      if (isNewOrder) {
-        return null;
-      }
+      if (isNewOrder) return null;
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
@@ -58,7 +55,7 @@ const AdminOrderDetails = () => {
       if (orderError) throw orderError;
       return orderData as Order;
     },
-    enabled: !isNewOrder, // Only run query if we're not creating a new order
+    enabled: !isNewOrder,
   });
 
   const { data: products } = useQuery({
@@ -75,12 +72,16 @@ const AdminOrderDetails = () => {
   });
 
   if (isLoading && !isNewOrder) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="animate-pulse text-muted-foreground">Carregando detalhes do pedido...</div>
+      </div>
+    );
   }
 
   const handleAddProduct = async () => {
     if (!selectedProduct || quantity < 1) {
-      toast.error("Please select a product and quantity");
+      toast.error("Selecione um produto e quantidade");
       return;
     }
 
@@ -98,10 +99,10 @@ const AdminOrderDetails = () => {
         });
 
       if (error) throw error;
-      toast.success("Product added to order");
+      toast.success("Produto adicionado ao pedido");
     } catch (error) {
       console.error('Error adding product:', error);
-      toast.error("Failed to add product");
+      toast.error("Erro ao adicionar produto");
     }
   };
 
@@ -113,10 +114,10 @@ const AdminOrderDetails = () => {
         .eq('id', itemId);
 
       if (error) throw error;
-      toast.success("Product removed from order");
+      toast.success("Produto removido do pedido");
     } catch (error) {
       console.error('Error removing product:', error);
-      toast.error("Failed to remove product");
+      toast.error("Erro ao remover produto");
     }
   };
 
@@ -143,7 +144,7 @@ const AdminOrderDetails = () => {
       toast.success(`Status atualizado para ${orderStatusMap[newStatus]}`);
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error("Failed to update status");
+      toast.error("Erro ao atualizar status");
     }
   };
 
@@ -152,19 +153,19 @@ const AdminOrderDetails = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-10">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isNewOrder ? "Novo Pedido" : `Pedido #${orderId}`}
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isNewOrder ? "Novo Pedido" : `Pedido #${orderId?.slice(0, 8)}`}
           </h1>
           {!isNewOrder && order && (
-            <p className="text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               Cliente: {order.customer_name}
             </p>
           )}
         </div>
-        <Button onClick={handleSaveChanges}>
+        <Button onClick={handleSaveChanges} className="bg-primary hover:bg-primary/90">
           <Save className="mr-2 h-4 w-4" />
           Salvar Alterações
         </Button>
@@ -172,11 +173,20 @@ const AdminOrderDetails = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          {!isNewOrder && order && <OrderCustomerInfo order={order} />}
+          {!isNewOrder && order && (
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-4">
+                <CardTitle>Informações do Cliente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <OrderCustomerInfo order={order} />
+              </CardContent>
+            </Card>
+          )}
 
           {!isNewOrder && (
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-4">
                 <CardTitle>Status do Pedido</CardTitle>
                 <CardDescription>Atualize o status do pedido</CardDescription>
               </CardHeader>
@@ -185,7 +195,7 @@ const AdminOrderDetails = () => {
                   value={status}
                   onValueChange={(value) => handleStatusChange(value as Order["status"])}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -200,8 +210,8 @@ const AdminOrderDetails = () => {
             </Card>
           )}
 
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-4">
               <CardTitle>Adicionar Produto</CardTitle>
               <CardDescription>Adicione produtos ao pedido</CardDescription>
             </CardHeader>
@@ -226,7 +236,7 @@ const AdminOrderDetails = () => {
                   onChange={(e) => setQuantity(Number(e.target.value))}
                   className="w-24"
                 />
-                <Button onClick={handleAddProduct}>
+                <Button onClick={handleAddProduct} variant="outline">
                   <Plus className="mr-2 h-4 w-4" />
                   Adicionar
                 </Button>
@@ -235,16 +245,23 @@ const AdminOrderDetails = () => {
           </Card>
 
           {!isNewOrder && order && (
-            <OrderProductList 
-              products={order.items || []}
-              onRemoveProduct={handleRemoveProduct}
-            />
+            <Card className="border-0 shadow-md overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle>Produtos do Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <OrderProductList 
+                  products={order.items || []}
+                  onRemoveProduct={handleRemoveProduct}
+                />
+              </CardContent>
+            </Card>
           )}
         </div>
 
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-4">
               <CardTitle>Adicionar Observação</CardTitle>
               <CardDescription>Adicione notas e observações ao pedido</CardDescription>
             </CardHeader>
@@ -253,16 +270,17 @@ const AdminOrderDetails = () => {
                 placeholder="Digite sua observação..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                className="min-h-[100px]"
               />
-              <Button onClick={handleAddNote} className="w-full">
+              <Button onClick={handleAddNote} className="w-full bg-primary hover:bg-primary/90">
                 Adicionar Observação
               </Button>
             </CardContent>
           </Card>
 
           {!isNewOrder && (
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-4">
                 <CardTitle>Histórico do Pedido</CardTitle>
                 <CardDescription>Acompanhe todas as atualizações</CardDescription>
               </CardHeader>
@@ -275,9 +293,9 @@ const AdminOrderDetails = () => {
       </div>
 
       {!isNewOrder && order && (
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-8">
           <div className="text-right">
-            <p className="text-lg font-semibold">Total do Pedido</p>
+            <p className="text-lg font-semibold text-muted-foreground">Total do Pedido</p>
             <p className="text-2xl font-bold">R$ {order.total.toFixed(2)}</p>
           </div>
         </div>
