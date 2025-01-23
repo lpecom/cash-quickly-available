@@ -23,10 +23,15 @@ export default function SellerIntegrations() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Integrações</h1>
-      <p className="text-muted-foreground">
-        Gerencie suas integrações com plataformas externas
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+          <p className="text-muted-foreground">
+            Gerencie suas integrações com plataformas externas
+          </p>
+        </div>
+      </div>
+      
       <div className="grid gap-6">
         <ShopifySettings />
         <PixelSettings config={configurations} />
