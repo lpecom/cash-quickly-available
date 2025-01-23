@@ -1,49 +1,46 @@
-import { useEffect, useState } from "react";
-import { User, Phone, LogOut } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import MobileNav from "@/components/MobileNav";
-import { useNavigate } from "react-router-dom";
+import { LogOut, User, Phone, Save } from "lucide-react";
 import { toast } from "sonner";
+import MobileNav from "@/components/MobileNav";
 
 const MotoboyProfile = () => {
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not found");
 
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", user.user.id)
         .single();
 
       if (error) throw error;
+
+      setFullName(data.full_name || "");
+      setPhone(data.phone || "");
+
       return data;
-    },
+    }
   });
 
-  useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || "");
-      setPhone(profile.phone || "");
-    }
-  }, [profile]);
-
-  const handleSave = async () => {
+  const handleUpdateProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      setIsUpdating(true);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not found");
 
       const { error } = await supabase
         .from("profiles")
@@ -51,34 +48,28 @@ const MotoboyProfile = () => {
           full_name: fullName,
           phone: phone,
         })
-        .eq("id", user.id);
+        .eq("id", user.user.id);
 
       if (error) throw error;
 
       toast.success("Perfil atualizado com sucesso!");
-      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Erro ao atualizar perfil");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
       toast.error("Erro ao sair");
-      return;
     }
-    navigate("/auth");
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-secondary">
-        <p>Carregando perfil...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-secondary pb-16">
@@ -90,67 +81,57 @@ const MotoboyProfile = () => {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Informações Pessoais
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Card className="p-6">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nome Completo</Label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Nome completo
+              </label>
               <Input
-                id="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                disabled={!isEditing}
+                placeholder="Seu nome completo"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Phone className="w-4 h-4" />
+                Telefone
+              </label>
               <Input
-                id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                disabled={!isEditing}
+                placeholder="Seu telefone"
               />
             </div>
 
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Button onClick={handleSave} className="flex-1">
-                  Salvar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={() => setIsEditing(true)}
-                variant="outline"
-                className="w-full"
-              >
-                Editar Informações
-              </Button>
-            )}
-
             <Button
-              variant="destructive"
               className="w-full"
-              onClick={handleLogout}
+              onClick={handleUpdateProfile}
+              disabled={isUpdating}
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
+              {isUpdating ? (
+                "Salvando..."
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar alterações
+                </>
+              )}
             </Button>
-          </CardContent>
+          </div>
         </Card>
+
+        <Button
+          variant="outline"
+          className="w-full mt-4"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
       <MobileNav />
     </div>
