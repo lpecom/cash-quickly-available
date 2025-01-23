@@ -285,7 +285,7 @@ const AdminOrderDetails = () => {
                 <CardDescription>Acompanhe todas as atualizações</CardDescription>
               </CardHeader>
               <CardContent>
-                <OrderTimeline events={[]} />
+                <OrderTimeline orderId={orderId || ''} />
               </CardContent>
             </Card>
           )}
