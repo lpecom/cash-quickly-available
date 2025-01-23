@@ -32,8 +32,6 @@ type ProductVariation = {
   options: string;
 };
 
-type ProductFormValues = z.infer<typeof productSchema>;
-
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   description: z.string().optional(),
@@ -47,6 +45,8 @@ const productSchema = z.object({
   ),
   stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
 });
+
+type ProductFormValues = z.infer<typeof productSchema>;
 
 const CreateProduct = () => {
   const navigate = useNavigate();
@@ -119,33 +119,37 @@ const CreateProduct = () => {
 
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
+      console.log("Creating product with values:", values);
+      
       const processedVariations = values.variations?.map(v => ({
         name: v.name,
         options: v.options.split(',').map(o => o.trim()),
       }));
 
-      const { data, error } = await supabase.from("products").insert([
-        {
-          name: values.name,
-          description: values.description,
-          price: parseFloat(values.price),
-          sku: values.sku,
-          variations: processedVariations,
-          stock: values.stock || {},
-          active: true,
-        },
-      ]).select();
+      const { data, error } = await supabase
+        .from("products")
+        .insert([
+          {
+            name: values.name,
+            description: values.description || null,
+            price: parseFloat(values.price),
+            sku: values.sku,
+            variations: processedVariations,
+            stock: values.stock || {},
+            active: true,
+          },
+        ])
+        .select();
 
       if (error) {
         console.error("Error creating product:", error);
         if (error.code === '23505') {
           throw new Error("SKU já está em uso.");
         }
-        if (error.code === '42501') {
-          throw new Error("Você não tem permissão para criar produtos.");
-        }
         throw error;
       }
+
+      console.log("Product created successfully:", data);
       return data;
     },
     onSuccess: () => {
@@ -157,7 +161,7 @@ const CreateProduct = () => {
       navigate("/admin/products");
     },
     onError: (error: Error) => {
-      console.error("Error creating product:", error);
+      console.error("Error in mutation:", error);
       toast({
         title: "Erro ao criar produto",
         description: error.message || "Ocorreu um erro ao criar o produto.",
@@ -184,6 +188,15 @@ const CreateProduct = () => {
       currentVariations.filter((_, i) => i !== index),
       { shouldValidate: true }
     );
+  };
+
+  const onSubmit = async (values: ProductFormValues) => {
+    console.log("Form submitted with values:", values);
+    try {
+      await createProduct.mutateAsync(values);
+    } catch (error) {
+      console.error("Error in onSubmit:", error);
+    }
   };
 
   if (isCheckingAuth) {
@@ -218,7 +231,7 @@ const CreateProduct = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -309,11 +322,7 @@ const CreateProduct = () => {
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                onClick={form.handleSubmit((values) => createProduct.mutate(values))}
-              >
+              <Button type="submit" className="w-full">
                 <Box className="h-4 w-4 mr-2" />
                 Criar Produto
               </Button>
