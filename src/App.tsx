@@ -25,6 +25,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import { Toaster } from "sonner";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/seller/SellerDashboard";
+import SellerSettings from "./pages/seller/SellerSettings";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
         {/* Seller Routes */}
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
+          <Route path="settings" element={<SellerSettings />} />
           {/* Other seller routes will be added later */}
         </Route>
       </Routes>

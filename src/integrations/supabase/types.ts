@@ -326,6 +326,8 @@ export type Database = {
           created_at: string
           id: string
           payment_info: Json | null
+          shopify_enabled: boolean | null
+          shopify_settings: Json | null
           updated_at: string
           user_id: string | null
         }
@@ -339,6 +341,8 @@ export type Database = {
           created_at?: string
           id?: string
           payment_info?: Json | null
+          shopify_enabled?: boolean | null
+          shopify_settings?: Json | null
           updated_at?: string
           user_id?: string | null
         }
@@ -352,6 +356,8 @@ export type Database = {
           created_at?: string
           id?: string
           payment_info?: Json | null
+          shopify_enabled?: boolean | null
+          shopify_settings?: Json | null
           updated_at?: string
           user_id?: string | null
         }
