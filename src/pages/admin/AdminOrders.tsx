@@ -18,59 +18,63 @@ import {
 import { Plus, Eye } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
-
-// Mock data - replace with real data later
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    customer: "João Silva",
-    address: "Rua A, 123",
-    status: "pending",
-    total: 150.00,
-    products: [],
-    createdAt: "2024-03-10T10:00:00",
-  },
-  {
-    id: "2",
-    customer: "Maria Santos",
-    address: "Av B, 456",
-    status: "confirmed",
-    total: 89.90,
-    products: [],
-    createdAt: "2024-03-10T09:30:00",
-  },
-  {
-    id: "3",
-    customer: "Pedro Oliveira",
-    address: "Rua C, 789",
-    status: "on_route",
-    total: 245.50,
-    products: [],
-    createdAt: "2024-03-10T09:00:00",
-  },
-  {
-    id: "4",
-    customer: "Ana Costa",
-    address: "Av D, 321",
-    status: "delivered",
-    total: 175.00,
-    products: [],
-    createdAt: "2024-03-09T18:00:00",
-  },
-] as Order[];
-
-const getStatusColor = (status: Order["status"]) => {
-  const colors = {
-    pending: "bg-yellow-500",
-    confirmed: "bg-blue-500",
-    on_route: "bg-purple-500",
-    delivered: "bg-green-500",
-    not_delivered: "bg-red-500",
-  };
-  return colors[status] || "bg-gray-500";
-};
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminOrders = () => {
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Failed to load orders');
+        throw error;
+      }
+
+      return data as Order[];
+    },
+  });
+
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
+
+    if (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+      return;
+    }
+
+    toast.success('Order status updated successfully');
+  };
+
+  const getStatusColor = (status: Order["status"]) => {
+    const colors = {
+      pending: "bg-yellow-500",
+      confirmed: "bg-blue-500",
+      on_route: "bg-purple-500",
+      delivered: "bg-green-500",
+      not_delivered: "bg-red-500",
+    };
+    return colors[status] || "bg-gray-500";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading orders...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -97,13 +101,16 @@ const AdminOrders = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockOrders.map((order) => (
+            {orders?.map((order) => (
               <TableRow key={order.id}>
-                <TableCell>#{order.id}</TableCell>
-                <TableCell>{order.customer}</TableCell>
+                <TableCell>#{order.id.slice(0, 8)}</TableCell>
+                <TableCell>{order.customer_name}</TableCell>
                 <TableCell>{order.address}</TableCell>
                 <TableCell>
-                  <Select defaultValue={order.status}>
+                  <Select 
+                    defaultValue={order.status}
+                    onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
+                  >
                     <SelectTrigger className="w-[140px]">
                       <SelectValue>
                         <Badge className={getStatusColor(order.status)}>
@@ -122,7 +129,7 @@ const AdminOrders = () => {
                 </TableCell>
                 <TableCell>R$ {order.total.toFixed(2)}</TableCell>
                 <TableCell>
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" asChild>
