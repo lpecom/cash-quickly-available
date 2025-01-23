@@ -25,8 +25,8 @@ export default {
         background: "#F8FAFC",
         foreground: "#1E293B",
         primary: {
-          DEFAULT: "#ECFCCB",
-          foreground: "#1E293B",
+          DEFAULT: "#8B5CF6",
+          foreground: "#FFFFFF",
         },
         secondary: {
           DEFAULT: "#F8FAFC",
@@ -41,12 +41,20 @@ export default {
           foreground: "#64748B",
         },
         accent: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#0F172A",
+          DEFAULT: "#D946EF",
+          foreground: "#FFFFFF",
         },
         card: {
           DEFAULT: "rgba(255, 255, 255, 0.9)",
           foreground: "#1E293B",
+        },
+        sidebar: {
+          DEFAULT: "#FFFFFF",
+          foreground: "#1E293B",
+          border: "#E2E8F0",
+          ring: "#8B5CF6",
+          accent: "#F1F5F9",
+          "accent-foreground": "#0F172A",
         },
       },
       borderRadius: {

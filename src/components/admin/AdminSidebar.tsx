@@ -36,15 +36,19 @@ export function AdminSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarHeader>
-          <div className="p-4">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold text-primary">Admin</h1>
+          <div className="p-6">
+            <div className="flex items-center gap-3">
+              <LayoutGrid className="h-7 w-7 text-primary" />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
+                Admin
+              </h1>
             </div>
           </div>
         </SidebarHeader>
         <SidebarGroup>
-          <SidebarGroupLabel>Gerenciamento</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/70">
+            Gerenciamento
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -55,7 +59,7 @@ export function AdminSidebar() {
                   >
                     <Link
                       to={item.url}
-                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-muted-foreground/80 transition-colors hover:text-primary data-[active=true]:text-primary"
                     >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
