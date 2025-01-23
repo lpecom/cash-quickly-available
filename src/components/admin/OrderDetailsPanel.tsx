@@ -5,9 +5,10 @@ import { OrderTimeline } from "./OrderTimeline";
 import { OrderCustomerInfo } from "./OrderCustomerInfo";
 import { OrderProductList } from "./OrderProductList";
 import { Button } from "../ui/button";
-import { Download, Package, Clock, MapPin, User, DollarSign, CalendarDays } from "lucide-react";
+import { Download, Package, Clock, MapPin, User, DollarSign, CalendarDays, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderStatusBadge } from "./OrderStatusBadge";
+import { Link } from "react-router-dom";
 
 interface OrderDetailsPanelProps {
   order: Order | null;
@@ -61,19 +62,18 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Package className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">Pedido #{order.id.slice(0, 8)}</h2>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CalendarDays className="h-4 w-4" />
-                <span>{format(new Date(order.created_at), "PPP 'às' p")}</span>
-              </div>
+    <div className="space-y-6 max-w-[1200px] mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-gray-200 pb-5">
+        <div className="flex items-center gap-4">
+          <Link to="/admin/orders" className="text-gray-500 hover:text-gray-700">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Pedido #{order.id.slice(0, 8)}</h1>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+              <CalendarDays className="h-4 w-4" />
+              <span>{format(new Date(order.created_at), "PPP 'às' p")}</span>
             </div>
           </div>
         </div>
@@ -86,79 +86,81 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 space-y-8">
-          <Card className="border-0 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5 text-primary" />
+      <div className="grid grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="col-span-2 space-y-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
+                <User className="h-5 w-5 text-gray-500" />
                 Informações do Cliente
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <OrderCustomerInfo order={order} />
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-primary" />
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
+                <Package className="h-5 w-5 text-gray-500" />
                 Itens do Pedido
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <OrderProductList products={order.items || []} />
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="h-5 w-5 text-primary" />
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
+                <DollarSign className="h-5 w-5 text-gray-500" />
                 Resumo do Pedido
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>R$ {order.total.toFixed(2)}</span>
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">R$ {order.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Taxa de entrega</span>
-                  <span>Grátis</span>
+                  <span className="text-gray-600">Taxa de entrega</span>
+                  <span className="font-medium text-green-600">Grátis</span>
                 </div>
-                <div className="flex justify-between items-center pt-4 border-t font-medium">
-                  <span>Total</span>
-                  <span className="text-lg">R$ {order.total.toFixed(2)}</span>
+                <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                  <span className="font-medium text-gray-900">Total</span>
+                  <span className="text-lg font-semibold text-gray-900">R$ {order.total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-8">
-          <Card className="border-0 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MapPin className="h-5 w-5 text-primary" />
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
+                <MapPin className="h-5 w-5 text-gray-500" />
                 Local de Entrega
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <OrderMap address={order.address} />
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="h-5 w-5 text-primary" />
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-700">
+                <Clock className="h-5 w-5 text-gray-500" />
                 Linha do Tempo
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <OrderTimeline events={timelineEvents} />
             </CardContent>
           </Card>
