@@ -25,7 +25,7 @@ export function MetricCard({ title, value, icon: Icon, trend }: MetricCardProps)
               }`}
             >
               {trend.isPositive ? "+" : "-"}
-              {trend.value}% from last month
+              {trend.value}% em relação ao mês anterior
             </p>
           )}
         </div>
