@@ -19,22 +19,28 @@ const mockProducts: Product[] = [
     id: "1",
     name: "Produto 1",
     price: 29.90,
-    quantity: 100,
     description: "Descrição do produto 1",
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
   {
     id: "2",
     name: "Produto 2",
     price: 49.90,
-    quantity: 50,
     description: "Descrição do produto 2",
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
   {
     id: "3",
     name: "Produto 3",
     price: 19.90,
-    quantity: 75,
     description: "Descrição do produto 3",
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
 ];
 
@@ -72,7 +78,7 @@ const AdminProducts = () => {
               <TableHead>Nome</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Preço</TableHead>
-              <TableHead>Quantidade</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -82,7 +88,7 @@ const AdminProducts = () => {
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{product.description}</TableCell>
                 <TableCell>R$ {product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
+                <TableCell>{product.active ? "Ativo" : "Inativo"}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button

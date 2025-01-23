@@ -23,6 +23,12 @@ export interface Product {
   updated_at: string;
 }
 
+export interface OrderProduct {
+  id: string;
+  product: Product;
+  quantity: number;
+}
+
 export interface OrderItem {
   id: string;
   order_id: string | null;
