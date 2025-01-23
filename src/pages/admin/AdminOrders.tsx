@@ -95,32 +95,9 @@ const AdminOrders = () => {
       setLoadingOrderId(orderId);
       console.log('Updating order status:', { orderId, newStatus });
 
-      // First check if we have permission to update
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to update orders');
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile || !['admin', 'superadmin'].includes(profile.role)) {
-        toast.error('You do not have permission to update orders');
-        return;
-      }
-
-      const updateData = {
-        status: newStatus,
-        ...(newStatus === 'confirmed' ? { driver_id: null } : {})
-      };
-
       const { error } = await supabase
         .from('orders')
-        .update(updateData)
+        .update({ status: newStatus })
         .eq('id', orderId);
 
       if (error) {
@@ -181,7 +158,7 @@ const AdminOrders = () => {
                 <TableCell>{order.address}</TableCell>
                 <TableCell>
                   <Select 
-                    value={order.status}
+                    defaultValue={order.status}
                     onValueChange={(value) => setPendingStatusChange({ 
                       orderId: order.id, 
                       newStatus: value as Order['status'] 
@@ -198,7 +175,7 @@ const AdminOrders = () => {
                             </>
                           ) : (
                             <Badge className={order.status === 'confirmed' ? 'bg-green-500' : ''}>
-                              {orderStatusMap[order.status]}
+                              {orderStatusMap[order.status as keyof typeof orderStatusMap]}
                             </Badge>
                           )}
                         </div>
@@ -267,7 +244,6 @@ const AdminOrders = () => {
               onClick={() => {
                 if (pendingStatusChange) {
                   handleStatusChange(pendingStatusChange.orderId, pendingStatusChange.newStatus);
-                  setPendingStatusChange(null);
                 }
               }}
             >
