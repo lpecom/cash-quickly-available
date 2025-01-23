@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ProductFormValues, productSchema } from "@/types/product";
+import { ProductFormValues, ProductVariation, productSchema } from "@/types/product";
 import { CreateProductHeader } from "@/components/admin/products/CreateProductHeader";
 import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
 import { ProductVariations } from "@/components/admin/products/ProductVariations";
