@@ -18,6 +18,7 @@ import AdminProductDetails from "./pages/admin/AdminProductDetails";
 import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import Index from "./pages/Index";
 import AuthPage from "./pages/auth/AuthPage";
+import Checkout from "./pages/Checkout";
 import { Toaster } from "sonner";
 
 function App() {
@@ -27,6 +28,9 @@ function App() {
         {/* Landing Page */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
+
+        {/* Checkout Routes */}
+        <Route path="/produto/:productId/checkout" element={<Checkout />} />
 
         {/* Motoboy Routes */}
         <Route path="/entregas" element={<MotoboyDashboard />} />

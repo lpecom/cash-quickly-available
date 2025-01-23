@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Link, ShoppingCart, Copy, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface CheckoutLinkGeneratorProps {
   productId: string;
@@ -17,26 +17,20 @@ interface CheckoutLinkGeneratorProps {
 }
 
 export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGeneratorProps) => {
-  const { toast } = useToast();
   const [checkoutLink, setCheckoutLink] = useState('');
 
   const generateCheckoutLink = () => {
+    // Update the path to match the route we defined in App.tsx
     const baseUrl = window.location.origin;
-    const link = `${baseUrl}/checkout/${productId}`;
+    const link = `${baseUrl}/produto/${productId}/checkout`;
     setCheckoutLink(link);
     
-    toast({
-      title: "Link generated",
-      description: "Checkout link has been generated successfully.",
-    });
+    toast.success("Link gerado com sucesso!");
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(checkoutLink);
-    toast({
-      title: "Copied!",
-      description: "Link copied to clipboard.",
-    });
+    toast.success("Link copiado!");
   };
 
   const openPreview = () => {
@@ -48,10 +42,10 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
       <CardHeader className="space-y-1">
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
-          <CardTitle>Custom Checkout Link</CardTitle>
+          <CardTitle>Link de Checkout</CardTitle>
         </div>
         <CardDescription>
-          Generate a checkout link for {productName}
+          Gere um link de checkout para {productName}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -68,7 +62,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
                   variant="outline"
                   size="icon"
                   onClick={copyToClipboard}
-                  title="Copy to clipboard"
+                  title="Copiar link"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -76,7 +70,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
                   variant="outline"
                   size="icon"
                   onClick={openPreview}
-                  title="Open preview"
+                  title="Abrir preview"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>
@@ -88,7 +82,7 @@ export const CheckoutLinkGenerator = ({ productId, productName }: CheckoutLinkGe
               className="w-full"
             >
               <Link className="h-4 w-4 mr-2" />
-              Generate Checkout Link
+              Gerar Link de Checkout
             </Button>
           )}
         </div>
