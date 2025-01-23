@@ -1,7 +1,7 @@
 import { OrdersMenu } from "@/components/admin/orders/OrdersMenu";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { Button } from "@/components/ui/button";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,7 +176,12 @@ const AdminOrders = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <Link to={`/admin/orders/${order.id}`}>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="bg-white hover:bg-primary hover:text-white transition-colors duration-200 gap-2 font-medium"
+                    >
+                      <Eye className="h-4 w-4" />
                       Visualizar
                     </Button>
                   </Link>
