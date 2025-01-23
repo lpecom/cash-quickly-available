@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -20,11 +18,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ProductFormValues, productSchema } from "@/types/product";
 import { MetricCard } from "@/components/MetricCard";
 import { CheckoutLinkGenerator } from "@/components/admin/products/CheckoutLinkGenerator";
-
-interface DbProductVariation {
-  name: string;
-  options: string[];
-}
+import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const AdminProductDetails = () => {
   const { productId } = useParams();
@@ -32,7 +27,6 @@ const AdminProductDetails = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch product data
   const { data: product, isLoading: isLoadingProduct } = useQuery({
     queryKey: ['product', productId],
     queryFn: async () => {
@@ -186,38 +180,42 @@ const AdminProductDetails = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/admin/products")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Detalhes do Produto</h1>
-          <p className="text-muted-foreground">
-            Gerencie as informações do produto
-          </p>
-        </div>
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/products">Products</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Product Details</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <Package className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Product Details</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <MetricCard
-          title="Vendas (30 dias)"
+          title="Sales (30 days)"
           value={`R$ ${orderMetrics?.totalRevenue?.toFixed(2) || '0,00'}`}
           icon={TrendingUp}
           trend={orderMetrics?.revenueTrend}
         />
         <MetricCard
-          title="Pedidos"
+          title="Orders"
           value={orderMetrics?.totalOrders?.toString() || '0'}
           icon={ShoppingCart}
         />
         <MetricCard
-          title="Unidades Vendidas"
+          title="Units Sold"
           value={orderMetrics?.totalQuantity?.toString() || '0'}
           icon={Truck}
         />
@@ -228,79 +226,23 @@ const AdminProductDetails = () => {
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
-              <CardTitle>Informações do Produto</CardTitle>
+              <CardTitle>Product Information</CardTitle>
             </div>
             <CardDescription>
-              Atualize as informações do produto
+              Update product information
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="text" placeholder="0.00" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="sku"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SKU</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                <BasicProductInfo form={form} />
                 <Button 
                   type="submit" 
                   className="w-full"
                   disabled={isLoading}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? "Salvando..." : "Salvar Alterações"}
+                  {isLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </form>
             </Form>

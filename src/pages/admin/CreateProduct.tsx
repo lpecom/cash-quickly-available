@@ -12,13 +12,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Package } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
+import { ProductFormValues, productSchema } from "@/types/product";
 import { CreateProductHeader } from "@/components/admin/products/CreateProductHeader";
 import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
 import { ProductVariations } from "@/components/admin/products/ProductVariations";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const CreateProduct = () => {
   const navigate = useNavigate();
@@ -162,17 +163,36 @@ const CreateProduct = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto p-4 md:p-6">
-      <CreateProductHeader />
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/products">Products</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Create Product</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <Package className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Create Product</h1>
+      </div>
 
       <Card className="border-2 border-muted shadow-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            <CardTitle>Informações do Produto</CardTitle>
+            <CardTitle>Product Information</CardTitle>
           </div>
           <CardDescription>
-            Preencha as informações do novo produto
+            Fill in the information for the new product
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,7 +212,7 @@ const CreateProduct = () => {
                 disabled={createProduct.isPending}
               >
                 <Package className="h-4 w-4 mr-2" />
-                {createProduct.isPending ? "Criando..." : "Criar Produto"}
+                {createProduct.isPending ? "Creating..." : "Create Product"}
               </Button>
             </form>
           </Form>
