@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -105,25 +107,36 @@ const AdminProductDetails = () => {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: product?.name || "",
-      description: product?.description || "",
-      sku: product?.sku || "",
-      price: product?.price?.toString() || "",
-      variations: product?.variations || [],
-      stock: product?.stock || {},
+      name: "",
+      description: "",
+      sku: "",
+      price: "",
+      variations: [],
+      stock: {},
     },
   });
 
   // Update form values when product data is loaded
   useEffect(() => {
     if (product) {
+      const variations = Array.isArray(product.variations) 
+        ? product.variations 
+        : [];
+      
+      const stock = typeof product.stock === 'object' && product.stock !== null
+        ? product.stock
+        : {};
+
       form.reset({
         name: product.name,
         description: product.description || "",
-        sku: product.sku,
+        sku: product.sku || "",
         price: product.price.toString(),
-        variations: product.variations || [],
-        stock: product.stock || {},
+        variations: variations.map(v => ({
+          name: v.name || "",
+          options: Array.isArray(v.options) ? v.options.join(', ') : v.options || ""
+        })),
+        stock: stock as Record<string, string>,
       });
     }
   }, [product, form]);
@@ -131,6 +144,11 @@ const AdminProductDetails = () => {
   const onSubmit = async (values: ProductFormValues) => {
     setIsLoading(true);
     try {
+      const processedVariations = values.variations.map(v => ({
+        name: v.name,
+        options: v.options.split(',').map(o => o.trim()),
+      }));
+
       const { error } = await supabase
         .from('products')
         .update({
@@ -138,7 +156,7 @@ const AdminProductDetails = () => {
           description: values.description,
           sku: values.sku,
           price: parseFloat(values.price),
-          variations: values.variations,
+          variations: processedVariations,
           stock: values.stock,
         })
         .eq('id', productId);
