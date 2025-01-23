@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { OrderStatus } from "@/types/order";
 
 interface OrderFiltersProps {
   onFiltersChange: (filters: {
     dateRange?: DateRange;
-    status?: string;
+    status?: OrderStatus | "all";
     search?: string;
   }) => void;
 }
@@ -41,7 +42,7 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
             }}
           />
           <Select
-            onValueChange={(value) => onFiltersChange({ status: value })}
+            onValueChange={(value) => onFiltersChange({ status: value as OrderStatus | "all" })}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
