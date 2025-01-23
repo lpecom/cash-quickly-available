@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { ShopifyOnboarding } from "./ShopifyOnboarding";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 
@@ -64,6 +65,7 @@ export function ShopifySettings() {
         .update({
           shopify_enabled: values.shopify_enabled,
           shopify_settings: values.shopify_settings as Json,
+          shopify_onboarding_status: values.shopify_enabled ? 'pending' : 'not_started',
         })
         .eq('user_id', user.id);
 
@@ -85,6 +87,12 @@ export function ShopifySettings() {
 
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  // Show onboarding flow when Shopify is enabled and onboarding is pending or in_progress
+  if (sellerProfile?.shopify_enabled && 
+      ['pending', 'in_progress'].includes(sellerProfile?.shopify_onboarding_status)) {
+    return <ShopifyOnboarding />;
   }
 
   return (
