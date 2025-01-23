@@ -16,7 +16,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ProductsMenu } from "@/components/admin/products/ProductsMenu";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,14 +28,12 @@ const AdminProducts = () => {
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      console.log("Fetching products...");
       const { data, error } = await supabase
         .from("products")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching products:", error);
         toast({
           title: "Error",
           description: "Failed to fetch products",
@@ -43,7 +42,6 @@ const AdminProducts = () => {
         throw error;
       }
 
-      console.log("Products fetched:", data);
       return data as Product[];
     },
   });
@@ -85,58 +83,66 @@ const AdminProducts = () => {
   ) ?? [];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span>Admin</span>
-          <span>/</span>
-          <span className="text-foreground">Products</span>
-        </div>
-        <div className="flex items-center gap-3 mt-6">
-          <Package className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Products</h1>
-        </div>
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Products</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <Package className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Products</h1>
       </div>
 
       <ProductsMenu />
 
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-lg font-medium">Product List</CardTitle>
+          <Button onClick={() => navigate("/admin/products/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Product
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
             <Input
-              placeholder="Buscar produtos..."
+              placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Button onClick={() => navigate("/admin/products/new")}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Produto
-            </Button>
           </div>
 
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Preço</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-4">
-                      Carregando produtos...
+                      Loading products...
                     </TableCell>
                   </TableRow>
                 ) : filteredProducts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-4">
-                      Nenhum produto encontrado
+                      No products found
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -148,14 +154,16 @@ const AdminProducts = () => {
                       <TableCell>{product.description}</TableCell>
                       <TableCell>R$ {product.price.toFixed(2)}</TableCell>
                       <TableCell>
-                        {product.active ? (
-                          <span className="text-green-600">Ativo</span>
-                        ) : (
-                          <span className="text-red-600">Inativo</span>
-                        )}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          product.active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}>
+                          {product.active ? "Active" : "Inactive"}
+                        </span>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -170,7 +178,7 @@ const AdminProducts = () => {
                             size="sm"
                             onClick={() => handleDeleteProduct(product.id)}
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
                       </TableCell>
