@@ -17,51 +17,51 @@ const AdminSettings = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Settings</BreadcrumbPage>
+            <BreadcrumbPage>Configurações</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex items-center gap-2">
         <Settings className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold">Configurações</h1>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="w-full justify-start">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="delivery">Delivery</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="general">Geral</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="delivery">Entrega</TabsTrigger>
+          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
+              <CardTitle>Configurações Gerais</CardTitle>
               <CardDescription>
-                Manage your delivery center's general settings
+                Gerencie as configurações gerais do seu centro de entrega
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="centerName">Delivery Center Name</Label>
-                <Input id="centerName" placeholder="Enter delivery center name" />
+                <Label htmlFor="centerName">Nome do Centro de Entrega</Label>
+                <Input id="centerName" placeholder="Digite o nome do centro de entrega" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" placeholder="Enter address" />
+                <Label htmlFor="address">Endereço</Label>
+                <Input id="address" placeholder="Digite o endereço" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" placeholder="Enter phone number" />
+                <Label htmlFor="phone">Telefone</Label>
+                <Input id="phone" placeholder="Digite o número de telefone" />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Operating Hours</Label>
+                  <Label>Horário de Funcionamento</Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow deliveries during these hours
+                    Permitir entregas durante estes horários
                   </p>
                 </div>
                 <Switch />
@@ -73,26 +73,26 @@ const AdminSettings = () => {
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
+              <CardTitle>Preferências de Notificação</CardTitle>
               <CardDescription>
-                Configure how you want to receive notifications
+                Configure como você deseja receber notificações
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email Notifications</Label>
+                  <Label>Notificações por E-mail</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive notifications via email
+                    Receber notificações via e-mail
                   </p>
                 </div>
                 <Switch />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Push Notifications</Label>
+                  <Label>Notificações Push</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive push notifications
+                    Receber notificações push
                   </p>
                 </div>
                 <Switch />
@@ -104,22 +104,22 @@ const AdminSettings = () => {
         <TabsContent value="security" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
+              <CardTitle>Configurações de Segurança</CardTitle>
               <CardDescription>
-                Manage your security preferences
+                Gerencie suas preferências de segurança
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Two-Factor Authentication</Label>
+                  <Label>Autenticação de Dois Fatores</Label>
                   <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security
+                    Adicione uma camada extra de segurança
                   </p>
                 </div>
                 <Switch />
               </div>
-              <Button variant="outline">Change Password</Button>
+              <Button variant="outline">Alterar Senha</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -127,21 +127,21 @@ const AdminSettings = () => {
         <TabsContent value="delivery" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Delivery Settings</CardTitle>
+              <CardTitle>Configurações de Entrega</CardTitle>
               <CardDescription>
-                Configure delivery preferences
+                Configure preferências de entrega
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="radius">Delivery Radius (km)</Label>
-                <Input id="radius" type="number" placeholder="Enter delivery radius" />
+                <Label htmlFor="radius">Raio de Entrega (km)</Label>
+                <Input id="radius" type="number" placeholder="Digite o raio de entrega" />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Auto-assign Orders</Label>
+                  <Label>Atribuição Automática de Pedidos</Label>
                   <p className="text-sm text-muted-foreground">
-                    Automatically assign orders to available drivers
+                    Atribuir pedidos automaticamente aos entregadores disponíveis
                   </p>
                 </div>
                 <Switch />
@@ -153,26 +153,26 @@ const AdminSettings = () => {
         <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Settings</CardTitle>
+              <CardTitle>Configurações de Pagamento</CardTitle>
               <CardDescription>
-                Configure payment methods and preferences
+                Configure métodos e preferências de pagamento
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Accept Cash Payments</Label>
+                  <Label>Aceitar Pagamentos em Dinheiro</Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow cash payments for deliveries
+                    Permitir pagamentos em dinheiro para entregas
                   </p>
                 </div>
                 <Switch />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Accept Card Payments</Label>
+                  <Label>Aceitar Pagamentos com Cartão</Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow card payments for deliveries
+                    Permitir pagamentos com cartão para entregas
                   </p>
                 </div>
                 <Switch />
