@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ArrowLeft, Box, Plus } from "lucide-react";
+import { ArrowLeft, Box, Plus, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariationField } from "@/components/admin/products/VariationField";
@@ -149,7 +149,6 @@ const CreateProduct = () => {
         throw error;
       }
 
-      console.log("Product created successfully:", data);
       return data;
     },
     onSuccess: () => {
@@ -201,27 +200,33 @@ const CreateProduct = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/admin/products")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Novo Produto</h1>
-          <p className="text-muted-foreground">
-            Adicione um novo produto ao catálogo
-          </p>
+    <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/admin/products")}
+            className="hover:bg-secondary"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Novo Produto</h1>
+            <p className="text-muted-foreground">
+              Adicione um novo produto ao catálogo
+            </p>
+          </div>
         </div>
       </div>
 
-      <Card className="border-2 border-muted">
-        <CardHeader>
-          <CardTitle>Informações do Produto</CardTitle>
+      <Card className="border-2 border-muted shadow-md">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            <CardTitle>Informações do Produto</CardTitle>
+          </div>
           <CardDescription>
             Preencha as informações do novo produto
           </CardDescription>
@@ -229,44 +234,15 @@ const CreateProduct = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Box className="h-4 w-4" />
-                      Nome do Produto
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-background" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-background" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-6">
                 <FormField
                   control={form.control}
-                  name="sku"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SKU</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        Nome do Produto
+                      </FormLabel>
                       <FormControl>
                         <Input {...field} className="bg-background" />
                       </FormControl>
@@ -277,50 +253,86 @@ const CreateProduct = () => {
 
                 <FormField
                   control={form.control}
-                  name="price"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Preço</FormLabel>
+                      <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <Input {...field} className="bg-background" placeholder="0.00" />
+                        <Input {...field} className="bg-background" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <FormLabel>Variações</FormLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addVariation}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Variação
-                  </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sku"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SKU</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="bg-background" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preço</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="bg-background" placeholder="0.00" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                {form.watch("variations").map((_, index) => (
-                  <VariationField
-                    key={index}
-                    form={form}
-                    index={index}
-                    onRemove={() => removeVariation(index)}
-                  />
-                ))}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Variações</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addVariation}
+                      className="hover:bg-primary hover:text-white transition-colors"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Variação
+                    </Button>
+                  </div>
 
-                <StockMatrix
-                  form={form}
-                  variations={form.watch("variations")}
-                />
+                  <div className="space-y-4">
+                    {form.watch("variations").map((_, index) => (
+                      <VariationField
+                        key={index}
+                        form={form}
+                        index={index}
+                        onRemove={() => removeVariation(index)}
+                      />
+                    ))}
+                  </div>
+
+                  <StockMatrix
+                    form={form}
+                    variations={form.watch("variations")}
+                  />
+                </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                <Box className="h-4 w-4 mr-2" />
+              <Button 
+                type="submit" 
+                className="w-full hover:bg-primary/90 transition-colors"
+              >
+                <Package className="h-4 w-4 mr-2" />
                 Criar Produto
               </Button>
             </form>
