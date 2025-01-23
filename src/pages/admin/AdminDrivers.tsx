@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { DriverMetrics } from "@/components/admin/drivers/DriverMetrics";
 import { DeliveryHistory } from "@/components/admin/drivers/DeliveryHistory";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DriversMenu } from "@/components/admin/drivers/DriversMenu";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const mapOrderStatusToDeliveryStatus = (
   orderStatus: string
@@ -86,7 +88,7 @@ const AdminDrivers = () => {
 
   if (isLoadingDrivers) {
     return (
-      <div className="space-y-6">
+      <div className="container mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-8 w-48" />
@@ -105,14 +107,30 @@ const AdminDrivers = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Entregadores</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex items-center gap-2">
+        <Users className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Entregadores</h1>
+      </div>
+
+      <DriversMenu />
+
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Entregadores</h1>
-          <p className="text-muted-foreground">
-            Gerencie entregadores e acompanhe métricas
-          </p>
-        </div>
+        <p className="text-muted-foreground">
+          Gerencie entregadores e acompanhe métricas
+        </p>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
           Novo Entregador
