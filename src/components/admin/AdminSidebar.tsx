@@ -3,7 +3,6 @@ import {
   Package,
   Users,
   Settings,
-  LayoutGrid,
   BoxesIcon,
   DollarSign,
 } from "lucide-react";
@@ -37,11 +36,12 @@ export function AdminSidebar() {
       <SidebarContent>
         <SidebarHeader>
           <div className="p-6">
-            <div className="flex items-center gap-3">
-              <LayoutGrid className="h-7 w-7 text-primary" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-                Administração
-              </h1>
+            <div className="flex items-center justify-center">
+              <img 
+                src="https://www.paguequandochegar.com/cdn/shop/files/LOGO-min.png?v=1732965324" 
+                alt="Pague Quando Chegar Logo" 
+                className="h-12 object-contain"
+              />
             </div>
           </div>
         </SidebarHeader>
