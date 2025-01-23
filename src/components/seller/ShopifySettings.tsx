@@ -21,7 +21,7 @@ interface SellerProfile {
   id: string;
   user_id: string;
   shopify_enabled: boolean;
-  shopify_settings: ShopifySettingsData | null;
+  shopify_settings: Json | null;
   shopify_onboarding_status: string;
 }
 
@@ -54,8 +54,8 @@ export function ShopifySettings() {
     defaultValues: {
       shopify_enabled: sellerProfile?.shopify_enabled ?? false,
       shopify_settings: {
-        store_name: sellerProfile?.shopify_settings?.store_name ?? '',
-        location_id: sellerProfile?.shopify_settings?.location_id ?? '',
+        store_name: (sellerProfile?.shopify_settings as ShopifySettingsData)?.store_name ?? '',
+        location_id: (sellerProfile?.shopify_settings as ShopifySettingsData)?.location_id ?? '',
       },
     },
   });
