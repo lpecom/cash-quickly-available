@@ -49,6 +49,8 @@ const MotoboyDashboard = () => {
       console.log("Orders fetched:", data);
       return data as OrderWithItems[];
     },
+    // Add refetch interval to keep the list updated
+    refetchInterval: 5000,
   });
 
   useEffect(() => {
