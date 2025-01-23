@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -122,7 +122,7 @@ const AdminProductDetails = () => {
   });
 
   // Update form values when product data is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (product) {
       const variations = (product.variations as DbProductVariation[] || []).map(v => ({
         name: v.name || "",
