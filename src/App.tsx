@@ -19,6 +19,7 @@ import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import Index from "./pages/Index";
 import AuthPage from "./pages/auth/AuthPage";
 import Checkout from "./pages/Checkout";
+import OrderSuccess from "./pages/OrderSuccess";
 import { Toaster } from "sonner";
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
 
         {/* Checkout Routes */}
         <Route path="/produto/:productId/checkout" element={<Checkout />} />
+        <Route path="/success" element={<OrderSuccess />} />
 
         {/* Motoboy Routes */}
         <Route path="/entregas" element={<MotoboyDashboard />} />

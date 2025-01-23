@@ -82,6 +82,13 @@ export default function Checkout() {
       const shippingCost = shippingMethod === "express" ? 3.99 : 0;
       const total = product.price + shippingCost;
 
+      console.log('Creating order with data:', {
+        customerName: formData.fullName,
+        address: `${formData.address}, ${formData.landmark}, ${formData.city}, ${formData.state} ${formData.pincode}`,
+        phone: formData.phone,
+        total
+      });
+
       // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -101,6 +108,8 @@ export default function Checkout() {
         throw orderError;
       }
 
+      console.log('Order created:', order);
+
       // Create order item
       const { error: itemError } = await supabase
         .from('order_items')
@@ -115,6 +124,8 @@ export default function Checkout() {
         console.error('Erro ao criar item do pedido:', itemError);
         throw itemError;
       }
+
+      console.log('Order item created successfully');
       
       navigate(`/success?orderId=${order.id}`);
     } catch (error) {
