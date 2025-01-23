@@ -81,6 +81,8 @@ const MotoboyDashboard = () => {
                   items: `${order.total} items`,
                   phone: order.phone,
                   accepted_at: order.accepted_at,
+                  created_at: order.created_at,
+                  total: order.total,
                   deliveryInstructions: order.delivery_instructions || undefined,
                 }}
                 onStartDelivery={() => {}}
