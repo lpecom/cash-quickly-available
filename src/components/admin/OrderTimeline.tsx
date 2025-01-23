@@ -10,9 +10,11 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { OrderStatus, TimelineEvent } from "@/types/order";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrderTimelineProps {
-  events: TimelineEvent[];
+  orderId: string;
 }
 
 const getStatusIcon = (status: OrderStatus) => {
@@ -49,7 +51,99 @@ const getStatusColor = (status: OrderStatus) => {
   }
 };
 
-export const OrderTimeline = ({ events }: OrderTimelineProps) => {
+export const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+
+  useEffect(() => {
+    const fetchOrderHistory = async () => {
+      const { data: order, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching order:', error);
+        return;
+      }
+
+      const timelineEvents: TimelineEvent[] = [
+        {
+          id: '1',
+          type: "status_change",
+          timestamp: new Date(order.created_at),
+          description: 'Pedido criado',
+          status: 'pending'
+        }
+      ];
+
+      if (order.accepted_at) {
+        timelineEvents.push({
+          id: '2',
+          type: "status_change",
+          timestamp: new Date(order.accepted_at),
+          description: 'Pedido aceito pelo entregador',
+          status: 'confirmed'
+        });
+      }
+
+      if (order.delivery_started_at) {
+        timelineEvents.push({
+          id: '3',
+          type: "status_change",
+          timestamp: new Date(order.delivery_started_at),
+          description: 'Entrega iniciada',
+          status: 'on_route'
+        });
+      }
+
+      if (order.delivery_completed_at) {
+        timelineEvents.push({
+          id: '4',
+          type: "status_change",
+          timestamp: new Date(order.delivery_completed_at),
+          description: 'Entrega concluída',
+          status: 'delivered'
+        });
+      }
+
+      if (order.delivery_failure_reason) {
+        timelineEvents.push({
+          id: '5',
+          type: "status_change",
+          timestamp: new Date(),
+          description: `Entrega falhou: ${order.delivery_failure_reason}`,
+          status: 'not_delivered'
+        });
+      }
+
+      setEvents(timelineEvents);
+    };
+
+    fetchOrderHistory();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('order-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`
+        },
+        () => {
+          fetchOrderHistory();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId]);
+
   const sortedEvents = [...events].sort((a, b) => 
     b.timestamp.getTime() - a.timestamp.getTime()
   );

@@ -73,44 +73,6 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
     }
   };
 
-  const timelineEvents = [
-    {
-      id: '1',
-      type: "status_change" as const,
-      timestamp: new Date(order.created_at),
-      description: 'Pedido criado',
-      status: 'pending' as const
-    },
-    ...(order.accepted_at ? [{
-      id: '2',
-      type: "status_change" as const,
-      timestamp: new Date(order.accepted_at),
-      description: 'Pedido aceito pelo entregador',
-      status: 'confirmed' as const
-    }] : []),
-    ...(order.delivery_started_at ? [{
-      id: '3',
-      type: "status_change" as const,
-      timestamp: new Date(order.delivery_started_at),
-      description: 'Entrega iniciada',
-      status: 'on_route' as const
-    }] : []),
-    ...(order.delivery_completed_at ? [{
-      id: '4',
-      type: "status_change" as const,
-      timestamp: new Date(order.delivery_completed_at),
-      description: 'Entrega concluída',
-      status: 'delivered' as const
-    }] : []),
-    ...(order.delivery_failure_reason ? [{
-      id: '5',
-      type: "status_change" as const,
-      timestamp: new Date(),
-      description: `Entrega falhou: ${order.delivery_failure_reason}`,
-      status: 'not_delivered' as const
-    }] : [])
-  ];
-
   return (
     <div className="space-y-6 max-w-[1200px] mx-auto p-6 bg-gray-50/50">
       {/* Header */}
@@ -228,7 +190,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <OrderTimeline events={timelineEvents} />
+              <OrderTimeline orderId={order.id} />
             </CardContent>
           </Card>
         </div>
