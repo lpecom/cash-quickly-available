@@ -69,6 +69,9 @@ export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
   // Calculate commission (10% of order total)
   const commission = (order.total * 0.10).toFixed(2);
 
+  const isAccepted = order.status === "on_route" && order.accepted_at;
+  const isPending = order.status === "pending" || order.status === "confirmed";
+
   return (
     <div className="bg-card rounded-lg shadow-sm p-4 space-y-4">
       <div className="flex items-start justify-between">
@@ -86,8 +89,8 @@ export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
             </p>
           </div>
         </div>
-        <Badge variant={order.status === "on_route" ? "default" : "secondary"}>
-          {order.status === "on_route" ? "Em rota" : "Disponível"}
+        <Badge variant={isAccepted ? "default" : "secondary"}>
+          {isAccepted ? "Em rota" : "Disponível"}
         </Badge>
       </div>
 
@@ -134,7 +137,7 @@ export const OrderCard = ({ order, onStartDelivery }: OrderCardProps) => {
         </div>
       </div>
 
-      {order.status === "pending" ? (
+      {isPending ? (
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
