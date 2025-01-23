@@ -61,7 +61,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [] as Array<{ name: string; options: string }>,
+      variations: [] as Array<ProductVariation>,
       stock: {},
     },
   });
