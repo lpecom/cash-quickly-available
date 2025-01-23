@@ -18,11 +18,13 @@ import {
 import { Plus, Eye } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AdminOrders = () => {
+  const queryClient = useQueryClient();
+
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
@@ -42,18 +44,35 @@ const AdminOrders = () => {
   });
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: newStatus,
+          // Clear driver_id when status changes to confirmed to make it available for motoboys
+          ...(newStatus === 'confirmed' ? { driver_id: null } : {})
+        })
+        .eq('id', orderId);
 
-    if (error) {
-      console.error('Error updating order status:', error);
-      toast.error('Failed to update order status');
-      return;
+      if (error) {
+        console.error('Error updating order status:', error);
+        toast.error('Failed to update order status');
+        return;
+      }
+
+      // Show different success messages based on the new status
+      if (newStatus === 'confirmed') {
+        toast.success('Order confirmed and available for motoboys');
+      } else {
+        toast.success('Order status updated successfully');
+      }
+
+      // Refresh orders data
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } catch (error) {
+      console.error('Error in handleStatusChange:', error);
+      toast.error('An unexpected error occurred');
     }
-
-    toast.success('Order status updated successfully');
   };
 
   const getStatusColor = (status: Order["status"]) => {
