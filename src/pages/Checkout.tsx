@@ -69,6 +69,13 @@ export default function Checkout() {
       const shippingCost = shippingMethod === "express" ? 3.99 : 0;
       const total = product.price + shippingCost;
 
+      console.log('Creating order with data:', {
+        customerName: formData.fullName,
+        address: `${formData.address}, ${formData.landmark}, ${formData.city}, ${formData.state} ${formData.pincode}`,
+        phone: formData.phone,
+        total
+      });
+
       // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -82,7 +89,12 @@ export default function Checkout() {
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        throw orderError;
+      }
+
+      console.log('Order created:', order);
 
       // Create order item
       const { error: itemError } = await supabase
@@ -94,10 +106,14 @@ export default function Checkout() {
           price_at_time: product.price,
         }]);
 
-      if (itemError) throw itemError;
+      if (itemError) {
+        console.error('Order item creation error:', itemError);
+        throw itemError;
+      }
 
-      toast.success("Order placed successfully!");
-      // Redirect to a success page or show success message
+      console.log('Order item created successfully');
+      
+      // Redirect to success page
       navigate(`/success?orderId=${order.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
