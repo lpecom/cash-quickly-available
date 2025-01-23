@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Package } from "lucide-react";
+import { Package, Menu } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 type Order = Tables<"orders">;
 
@@ -52,7 +61,41 @@ const MotoboyDashboard = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="mb-6 text-2xl font-bold">Pedidos em Rota</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Pedidos em Rota</h1>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 flex flex-col gap-2">
+              <Link
+                to="/entregas"
+                className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent"
+              >
+                Entregas
+              </Link>
+              <Link
+                to="/pagamentos"
+                className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent"
+              >
+                Pagamentos
+              </Link>
+              <Link
+                to="/vendas"
+                className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent"
+              >
+                Vendas
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
       <div className="grid gap-4">
         {orders?.map((order) => (
           <div
