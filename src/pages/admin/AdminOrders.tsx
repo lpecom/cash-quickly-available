@@ -76,7 +76,7 @@ const AdminOrders = () => {
 
       if (error) {
         console.error('Error calling driver:', error);
-        toast.error('Failed to call driver');
+        toast.error(`Failed to call driver: ${error.message}`);
         return;
       }
 
@@ -95,6 +95,24 @@ const AdminOrders = () => {
       setLoadingOrderId(orderId);
       console.log('Updating order status:', { orderId, newStatus });
 
+      // First check if we have permission to update
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to update orders');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || !['admin', 'superadmin'].includes(profile.role)) {
+        toast.error('You do not have permission to update orders');
+        return;
+      }
+
       const updateData = {
         status: newStatus,
         ...(newStatus === 'confirmed' ? { driver_id: null } : {})
@@ -107,7 +125,7 @@ const AdminOrders = () => {
 
       if (error) {
         console.error('Error updating order status:', error);
-        toast.error('Failed to update order status');
+        toast.error(`Failed to update order status: ${error.message}`);
         return;
       }
 
@@ -115,9 +133,10 @@ const AdminOrders = () => {
       toast.success(`Order status updated to ${orderStatusMap[newStatus]}`);
     } catch (error) {
       console.error('Error in handleStatusChange:', error);
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred while updating the order');
     } finally {
       setLoadingOrderId(null);
+      setPendingStatusChange(null);
     }
   };
 
