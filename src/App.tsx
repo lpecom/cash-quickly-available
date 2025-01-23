@@ -11,6 +11,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetails from "./pages/admin/AdminOrderDetails";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductDetails from "./pages/admin/AdminProductDetails";
+import AdminSuppliers from "./pages/admin/AdminSuppliers";
 import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import AdminFinance from "./pages/admin/AdminFinance";
@@ -50,6 +51,7 @@ function App() {
             <Route path="orders/:orderId" element={<AdminOrderDetails />} />
             <Route path="orders/create" element={<CreateOrder />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="products/suppliers" element={<AdminSuppliers />} />
             <Route path="products/:productId" element={<AdminProductDetails />} />
             <Route path="products/create" element={<CreateProduct />} />
             <Route path="drivers" element={<AdminDrivers />} />
