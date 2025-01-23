@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -22,16 +21,17 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Box, Tag, Barcode, Warehouse, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  description: z.string(),
+  variations: z.string(),
+  sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
+  stock: z.string().regex(/^\d+$/, "Estoque deve ser um número inteiro"),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
-  active: z.boolean().default(true),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -65,9 +65,10 @@ const CreateProduct = () => {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
-      description: "",
+      variations: "",
+      sku: "",
+      stock: "",
       price: "",
-      active: true,
     },
   });
 
@@ -76,9 +77,11 @@ const CreateProduct = () => {
       const { data, error } = await supabase.from("products").insert([
         {
           name: values.name,
-          description: values.description,
+          description: values.variations, // Using description field for variations
           price: parseFloat(values.price),
-          active: values.active,
+          sku: values.sku,
+          stock: parseInt(values.stock),
+          active: true,
         },
       ]);
 
@@ -118,7 +121,7 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -136,7 +139,7 @@ const CreateProduct = () => {
         </div>
       </div>
 
-      <Card>
+      <Card className="border-2 border-muted">
         <CardHeader>
           <CardTitle>Informações do Produto</CardTitle>
           <CardDescription>
@@ -145,15 +148,18 @@ const CreateProduct = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Box className="h-4 w-4" />
+                      Nome do Produto
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} className="bg-background" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -162,12 +168,49 @@ const CreateProduct = () => {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="variations"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Variações
+                    </FormLabel>
                     <FormControl>
-                      <Textarea {...field} />
+                      <Input {...field} className="bg-background" placeholder="Ex: Tamanhos, cores, etc" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Barcode className="h-4 w-4" />
+                      SKU
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-background" placeholder="Código único do produto" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="stock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Warehouse className="h-4 w-4" />
+                      Estoque no Armazém
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" min="0" className="bg-background" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -179,9 +222,12 @@ const CreateProduct = () => {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Preço
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} type="text" placeholder="0.00" />
+                      <Input {...field} className="bg-background" placeholder="0.00" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
