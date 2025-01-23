@@ -326,8 +326,14 @@ export type Database = {
           created_at: string
           id: string
           payment_info: Json | null
+          shopify_access_scopes: string[] | null
+          shopify_app_id: string | null
+          shopify_app_secret: string | null
           shopify_enabled: boolean | null
+          shopify_onboarding_status: string
           shopify_settings: Json | null
+          shopify_theme_id: string | null
+          shopify_webhook_version: string | null
           updated_at: string
           user_id: string | null
         }
@@ -341,8 +347,14 @@ export type Database = {
           created_at?: string
           id?: string
           payment_info?: Json | null
+          shopify_access_scopes?: string[] | null
+          shopify_app_id?: string | null
+          shopify_app_secret?: string | null
           shopify_enabled?: boolean | null
+          shopify_onboarding_status?: string
           shopify_settings?: Json | null
+          shopify_theme_id?: string | null
+          shopify_webhook_version?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -356,8 +368,14 @@ export type Database = {
           created_at?: string
           id?: string
           payment_info?: Json | null
+          shopify_access_scopes?: string[] | null
+          shopify_app_id?: string | null
+          shopify_app_secret?: string | null
           shopify_enabled?: boolean | null
+          shopify_onboarding_status?: string
           shopify_settings?: Json | null
+          shopify_theme_id?: string | null
+          shopify_webhook_version?: string | null
           updated_at?: string
           user_id?: string | null
         }

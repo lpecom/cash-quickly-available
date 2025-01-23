@@ -1,12 +1,12 @@
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { ShopifyOnboarding } from "./ShopifyOnboarding";
 import { toast } from "sonner";
 
 interface ShopifySettings {
@@ -19,6 +19,7 @@ interface SellerProfile {
   user_id: string;
   shopify_enabled: boolean;
   shopify_settings: ShopifySettings;
+  shopify_onboarding_status: string;
 }
 
 interface ShopifySettingsFormValues {
@@ -50,8 +51,8 @@ export function ShopifySettings() {
     defaultValues: {
       shopify_enabled: sellerProfile?.shopify_enabled ?? false,
       shopify_settings: {
-        store_name: (sellerProfile?.shopify_settings as ShopifySettings)?.store_name ?? '',
-        location_id: (sellerProfile?.shopify_settings as ShopifySettings)?.location_id ?? '',
+        store_name: sellerProfile?.shopify_settings?.store_name ?? '',
+        location_id: sellerProfile?.shopify_settings?.location_id ?? '',
       },
     },
   });
@@ -65,7 +66,8 @@ export function ShopifySettings() {
         .from('seller_profiles')
         .update({
           shopify_enabled: values.shopify_enabled,
-          shopify_settings: values.shopify_settings as unknown as Json,
+          shopify_settings: values.shopify_settings,
+          shopify_onboarding_status: values.shopify_enabled ? 'pending' : 'completed',
         })
         .eq('user_id', user.id);
 
@@ -87,6 +89,10 @@ export function ShopifySettings() {
 
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (sellerProfile?.shopify_enabled && sellerProfile?.shopify_onboarding_status !== 'completed') {
+    return <ShopifyOnboarding />;
   }
 
   return (
