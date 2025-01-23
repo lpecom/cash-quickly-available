@@ -27,6 +27,7 @@ import { Toaster } from "sonner";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerSettings from "./pages/seller/SellerSettings";
+import SellerIntegrations from "./pages/seller/SellerIntegrations";
 
 function App() {
   return (
@@ -71,6 +72,7 @@ function App() {
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
           <Route path="settings" element={<SellerSettings />} />
+          <Route path="integrations" element={<SellerIntegrations />} />
         </Route>
       </Routes>
       <Toaster />
