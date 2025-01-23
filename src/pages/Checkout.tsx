@@ -8,15 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { MapPin, Timer, Truck, ShoppingBag } from "lucide-react";
+import { MapPin, Timer, Truck, ShoppingBag, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+type PaymentMethod = "cash" | "card";
 
 export default function Checkout() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [shippingMethod, setShippingMethod] = useState<"free" | "express">("free");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -31,7 +34,7 @@ export default function Checkout() {
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
-      if (!productId) throw new Error("Product ID is required");
+      if (!productId) throw new Error("ID do produto é obrigatório");
 
       const { data, error } = await supabase
         .from("products")
@@ -40,12 +43,12 @@ export default function Checkout() {
         .single();
 
       if (error) {
-        console.error("Error fetching product:", error);
+        console.error("Erro ao buscar produto:", error);
         throw error;
       }
 
       if (!data) {
-        throw new Error("Product not found");
+        throw new Error("Produto não encontrado");
       }
 
       return data as Product;
@@ -66,7 +69,6 @@ export default function Checkout() {
     setIsSubmitting(true);
     
     try {
-      // Validate required fields
       if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
         toast.error("Por favor, preencha todos os campos obrigatórios");
         return;
@@ -80,13 +82,6 @@ export default function Checkout() {
       const shippingCost = shippingMethod === "express" ? 3.99 : 0;
       const total = product.price + shippingCost;
 
-      console.log('Creating order with data:', {
-        customerName: formData.fullName,
-        address: `${formData.address}, ${formData.landmark}, ${formData.city}, ${formData.state} ${formData.pincode}`,
-        phone: formData.phone,
-        total
-      });
-
       // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -96,16 +91,15 @@ export default function Checkout() {
           phone: formData.phone,
           status: 'pending',
           total: total,
+          delivery_instructions: formData.landmark || null,
         }])
         .select()
         .single();
 
       if (orderError) {
-        console.error('Order creation error:', orderError);
+        console.error('Erro ao criar pedido:', orderError);
         throw orderError;
       }
-
-      console.log('Order created:', order);
 
       // Create order item
       const { error: itemError } = await supabase
@@ -118,16 +112,13 @@ export default function Checkout() {
         }]);
 
       if (itemError) {
-        console.error('Order item creation error:', itemError);
+        console.error('Erro ao criar item do pedido:', itemError);
         throw itemError;
       }
-
-      console.log('Order item created successfully');
       
-      // Redirect to success page
       navigate(`/success?orderId=${order.id}`);
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Erro ao criar pedido:', error);
       toast.error("Falha ao criar pedido. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
@@ -176,9 +167,9 @@ export default function Checkout() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
             <ShoppingBag className="h-8 w-8" />
-            Secure Checkout
+            Finalizar Compra
           </h1>
-          <p className="text-white/80">Complete your purchase securely</p>
+          <p className="text-white/80">Complete sua compra de forma segura</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -186,17 +177,17 @@ export default function Checkout() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                Shipping Information
+                Informações de Entrega
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Label htmlFor="fullName">Nome Completo *</Label>
                   <Input
                     id="fullName"
                     name="fullName"
-                    placeholder="Enter your full name"
+                    placeholder="Digite seu nome completo"
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required
@@ -205,11 +196,11 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone">Telefone *</Label>
                   <Input
                     id="phone"
                     name="phone"
-                    placeholder="Enter your phone number"
+                    placeholder="Digite seu telefone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
@@ -218,11 +209,11 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address *</Label>
+                  <Label htmlFor="address">Endereço *</Label>
                   <Input
                     id="address"
                     name="address"
-                    placeholder="Street address"
+                    placeholder="Rua, número"
                     value={formData.address}
                     onChange={handleInputChange}
                     required
@@ -231,11 +222,11 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="landmark">Landmark (Optional)</Label>
+                  <Label htmlFor="landmark">Ponto de Referência</Label>
                   <Input
                     id="landmark"
                     name="landmark"
-                    placeholder="Nearby landmark"
+                    placeholder="Ex: Próximo ao mercado"
                     value={formData.landmark}
                     onChange={handleInputChange}
                     className="bg-white"
@@ -244,11 +235,11 @@ export default function Checkout() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City *</Label>
+                    <Label htmlFor="city">Cidade *</Label>
                     <Input
                       id="city"
                       name="city"
-                      placeholder="City"
+                      placeholder="Cidade"
                       value={formData.city}
                       onChange={handleInputChange}
                       required
@@ -256,11 +247,11 @@ export default function Checkout() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State *</Label>
+                    <Label htmlFor="state">Estado *</Label>
                     <Input
                       id="state"
                       name="state"
-                      placeholder="State"
+                      placeholder="Estado"
                       value={formData.state}
                       onChange={handleInputChange}
                       required
@@ -270,11 +261,11 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pincode">Pincode *</Label>
+                  <Label htmlFor="pincode">CEP *</Label>
                   <Input
                     id="pincode"
                     name="pincode"
-                    placeholder="Postal code"
+                    placeholder="CEP"
                     value={formData.pincode}
                     onChange={handleInputChange}
                     required
@@ -287,7 +278,7 @@ export default function Checkout() {
                   className="w-full" 
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Processing..." : `Complete Order - R$ ${totalCost}`}
+                  {isSubmitting ? "Processando..." : `Finalizar Pedido - R$ ${totalCost}`}
                 </Button>
               </form>
             </CardContent>
@@ -295,7 +286,7 @@ export default function Checkout() {
 
           <Card className="bg-white/95 backdrop-blur md:sticky md:top-8">
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Resumo do Pedido</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-4">
@@ -324,8 +315,8 @@ export default function Checkout() {
                     <Label htmlFor="free" className="flex items-center gap-2">
                       <Truck className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="font-medium">Free shipping</p>
-                        <p className="text-sm text-muted-foreground">3-5 business days</p>
+                        <p className="font-medium">Entrega padrão</p>
+                        <p className="text-sm text-muted-foreground">3-5 dias úteis</p>
                       </div>
                     </Label>
                   </div>
@@ -334,9 +325,28 @@ export default function Checkout() {
                     <Label htmlFor="express" className="flex items-center gap-2">
                       <Timer className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="font-medium">Express shipping</p>
-                        <p className="text-sm text-muted-foreground">1-2 business days</p>
-                        <p className="text-sm font-medium text-primary">+ R$ 3.99</p>
+                        <p className="font-medium">Entrega expressa</p>
+                        <p className="text-sm text-muted-foreground">1-2 dias úteis</p>
+                        <p className="text-sm font-medium text-primary">+ R$ 3,99</p>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="border-t pt-4">
+                <RadioGroup
+                  defaultValue={paymentMethod}
+                  onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash" className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-primary" />
+                      <div>
+                        <p className="font-medium">Pagamento na entrega</p>
+                        <p className="text-sm text-muted-foreground">Pague em dinheiro ao receber</p>
                       </div>
                     </Label>
                   </div>
@@ -349,8 +359,8 @@ export default function Checkout() {
                   <span>R$ {product.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span>Shipping</span>
-                  <span>{shippingMethod === "express" ? "R$ 3.99" : "Free"}</span>
+                  <span>Frete</span>
+                  <span>{shippingMethod === "express" ? "R$ 3,99" : "Grátis"}</span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span>Total</span>
