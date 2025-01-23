@@ -40,7 +40,7 @@ export function AdminSidebar() {
             <div className="flex items-center gap-3">
               <LayoutGrid className="h-7 w-7 text-primary" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-                Admin
+                Administração
               </h1>
             </div>
           </div>
