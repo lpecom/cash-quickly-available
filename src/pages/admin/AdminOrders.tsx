@@ -139,7 +139,7 @@ const AdminOrders = () => {
                 <TableCell>{order.address}</TableCell>
                 <TableCell>
                   <Select 
-                    defaultValue={order.status}
+                    value={order.status}
                     onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
                     disabled={loadingOrderId === order.id}
                   >
