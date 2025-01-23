@@ -38,7 +38,7 @@ const AdminAuthPage = () => {
           .eq('id', session.user.id)
           .single();
 
-        if (profile?.role === 'admin') {
+        if (profile?.role === 'admin' || profile?.role === 'superadmin') {
           navigate('/admin');
         } else {
           toast.error("Acesso não autorizado para esta área.");
@@ -69,14 +69,14 @@ const AdminAuthPage = () => {
 
       if (error) throw error;
 
-      // Check if user has admin role
+      // Check if user has admin or superadmin role
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user?.id)
         .single();
 
-      if (profile?.role !== 'admin') {
+      if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
         await supabase.auth.signOut();
         toast.error("Acesso não autorizado. Esta área é restrita para administradores.");
         return;
