@@ -21,17 +21,23 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ArrowLeft, Box, Tag, Barcode, Warehouse, DollarSign } from "lucide-react";
+import { ArrowLeft, Box, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { VariationField } from "@/components/admin/products/VariationField";
+import { StockMatrix } from "@/components/admin/products/StockMatrix";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  variations: z.string(),
+  description: z.string().optional(),
   sku: z.string().min(3, "SKU deve ter pelo menos 3 caracteres"),
-  stock: z.string().regex(/^\d+$/, "Estoque deve ser um número inteiro"),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Preço inválido"),
+  variations: z.array(z.object({
+    name: z.string().min(1, "Nome da variação é obrigatório"),
+    options: z.string().min(1, "Opções são obrigatórias"),
+  })).optional(),
+  stock: z.record(z.string(), z.string().regex(/^\d+$/, "Quantidade deve ser um número inteiro")).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -40,10 +46,20 @@ const CreateProduct = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Check if user is admin on component mount
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      sku: "",
+      price: "",
+      variations: [],
+      stock: {},
+    },
+  });
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
@@ -96,26 +112,21 @@ const CreateProduct = () => {
     checkAdminAccess();
   }, [navigate, toast]);
 
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      variations: "",
-      sku: "",
-      stock: "",
-      price: "",
-    },
-  });
-
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
+      const processedVariations = values.variations?.map(v => ({
+        name: v.name,
+        options: v.options.split(',').map(o => o.trim()),
+      }));
+
       const { data, error } = await supabase.from("products").insert([
         {
           name: values.name,
-          description: values.variations,
+          description: values.description,
           price: parseFloat(values.price),
           sku: values.sku,
-          stock: parseInt(values.stock),
+          variations: processedVariations,
+          stock: values.stock || {},
           active: true,
         },
       ]).select();
@@ -150,17 +161,21 @@ const CreateProduct = () => {
     },
   });
 
-  const onSubmit = async (values: ProductFormValues) => {
-    setIsLoading(true);
-    try {
-      await createProduct.mutateAsync(values);
-    } finally {
-      setIsLoading(false);
-    }
+  const addVariation = () => {
+    const currentVariations = form.getValues("variations") || [];
+    form.setValue("variations", [
+      ...currentVariations,
+      { name: "", options: "" },
+    ]);
+  };
+
+  const removeVariation = (index: number) => {
+    const currentVariations = form.getValues("variations") || [];
+    form.setValue("variations", currentVariations.filter((_, i) => i !== index));
   };
 
   if (isCheckingAuth) {
-    return null; // or a loading spinner
+    return null;
   }
 
   return (
@@ -191,7 +206,7 @@ const CreateProduct = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -211,85 +226,84 @@ const CreateProduct = () => {
 
               <FormField
                 control={form.control}
-                name="variations"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Tag className="h-4 w-4" />
-                      Variações
-                    </FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-background" placeholder="Ex: Tamanhos, cores, etc" />
+                      <Input {...field} className="bg-background" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="sku"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Barcode className="h-4 w-4" />
-                      SKU
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-background" placeholder="Código único do produto" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="bg-background" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="stock"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Warehouse className="h-4 w-4" />
-                      Estoque no Armazém
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" min="0" className="bg-background" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="bg-background" placeholder="0.00" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Preço
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-background" placeholder="0.00" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <FormLabel>Variações</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addVariation}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Variação
+                  </Button>
+                </div>
+
+                {form.watch("variations")?.map((_, index) => (
+                  <VariationField
+                    key={index}
+                    form={form}
+                    index={index}
+                    onRemove={() => removeVariation(index)}
+                  />
+                ))}
+
+                <StockMatrix
+                  form={form}
+                  variations={form.watch("variations") || []}
+                />
+              </div>
 
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                onClick={form.handleSubmit((values) => createProduct.mutate(values))}
               >
-                {isLoading ? (
-                  "Criando..."
-                ) : (
-                  <>
-                    <Box className="h-4 w-4 mr-2" />
-                    Criar Produto
-                  </>
-                )}
+                <Box className="h-4 w-4 mr-2" />
+                Criar Produto
               </Button>
             </form>
           </Form>

@@ -117,8 +117,9 @@ export type Database = {
           name: string
           price: number
           sku: string | null
-          stock: number | null
+          stock: Json | null
           updated_at: string
+          variations: Json | null
         }
         Insert: {
           active?: boolean | null
@@ -128,8 +129,9 @@ export type Database = {
           name: string
           price: number
           sku?: string | null
-          stock?: number | null
+          stock?: Json | null
           updated_at?: string
+          variations?: Json | null
         }
         Update: {
           active?: boolean | null
@@ -139,8 +141,9 @@ export type Database = {
           name?: string
           price?: number
           sku?: string | null
-          stock?: number | null
+          stock?: Json | null
           updated_at?: string
+          variations?: Json | null
         }
         Relationships: []
       }
