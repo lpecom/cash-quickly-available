@@ -1,6 +1,13 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageSquare, Clock, CheckCircle2, XCircle, Package, Truck } from "lucide-react";
+import { 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  Package, 
+  Truck,
+  AlertCircle
+} from "lucide-react";
 import { format } from "date-fns";
 import { OrderStatus, TimelineEvent } from "@/types/order";
 
@@ -21,18 +28,7 @@ const getStatusIcon = (status: OrderStatus) => {
     case "not_delivered":
       return <XCircle className="w-4 h-4" />;
     default:
-      return <Clock className="w-4 h-4" />;
-  }
-};
-
-const getEventIcon = (type: TimelineEvent["type"]) => {
-  switch (type) {
-    case "call":
-      return <Phone className="w-4 h-4" />;
-    case "message":
-      return <MessageSquare className="w-4 h-4" />;
-    default:
-      return <Clock className="w-4 h-4" />;
+      return <AlertCircle className="w-4 h-4" />;
   }
 };
 
@@ -65,18 +61,24 @@ export const OrderTimeline = ({ events }: OrderTimelineProps) => {
           <div key={event.id} className="relative pl-8">
             {/* Timeline line */}
             {index !== sortedEvents.length - 1 && (
-              <div className="absolute left-[15px] top-6 bottom-0 w-px bg-border" />
+              <div 
+                className={`absolute left-[15px] top-6 bottom-0 w-px ${
+                  event.status ? getStatusColor(event.status).replace('bg-', 'bg-opacity-20 bg-') : 'bg-border'
+                }`} 
+              />
             )}
             
             {/* Event dot */}
-            <div className={`absolute left-0 top-1 h-8 w-8 rounded-full ${event.status ? getStatusColor(event.status) : 'bg-gray-500'} flex items-center justify-center text-white`}>
+            <div className={`absolute left-0 top-1 h-8 w-8 rounded-full ${
+              event.status ? getStatusColor(event.status) : 'bg-gray-500'
+            } flex items-center justify-center text-white shadow-lg transition-all duration-200`}>
               {event.type === "status_change" && event.status
                 ? getStatusIcon(event.status)
-                : getEventIcon(event.type)}
+                : <Clock className="w-4 h-4" />}
             </div>
 
             {/* Event content */}
-            <div className="space-y-1">
+            <div className="space-y-1 bg-card p-4 rounded-lg shadow-sm border">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium leading-none">
                   {event.description}
