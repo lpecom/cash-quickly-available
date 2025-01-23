@@ -40,7 +40,7 @@ const MotoboyCollections = () => {
           )
         `)
         .eq('driver_id', user.user?.id)
-        .in('status', ['confirmed', 'on_route'])
+        .in('status', ['confirmed', 'on_route', 'not_delivered'])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -59,9 +59,7 @@ const MotoboyCollections = () => {
   }
 
   const toCollectOrders = orders?.filter(order => order.status === 'confirmed') || [];
-  const toReturnOrders = orders?.filter(order => 
-    order.status === 'on_route' && order.delivery_failure_reason
-  ) || [];
+  const toReturnOrders = orders?.filter(order => order.status === 'not_delivered') || [];
 
   return (
     <div className="min-h-screen bg-secondary pb-16">
