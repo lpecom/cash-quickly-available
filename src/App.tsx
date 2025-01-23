@@ -8,6 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import Index from "./pages/Index";
 import AuthPage from "./pages/auth/AuthPage";
+import MotoboyDashboard from "./pages/MotoboyDashboard";
+import MotoboyDashboardStats from "./pages/MotoboyDashboardStats";
+import MotoboyPayments from "./pages/MotoboyPayments";
+import MotoboySales from "./pages/MotoboySales";
+import OrderDetails from "./pages/OrderDetails";
+import MobileNav from "./components/MobileNav";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetails from "./pages/admin/AdminOrderDetails";
@@ -102,6 +108,48 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Motoboy Routes */}
+          <Route
+            path="/motoboy"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/dashboard"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyDashboardStats />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/payments"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboyPayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motoboy/sales"
+            element={
+              <ProtectedRoute requiredRole="motoboy">
+                <MotoboySales />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/order/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route
@@ -123,6 +171,7 @@ const App = () => (
             <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Routes>
+        <MobileNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

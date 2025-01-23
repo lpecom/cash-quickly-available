@@ -39,7 +39,7 @@ const AdminFinance = () => {
           created_at,
           status,
           driver_id,
-          driver:profiles!orders_driver_id_fkey (
+          profiles:driver_id (
             full_name,
             phone
           )
@@ -50,11 +50,11 @@ const AdminFinance = () => {
 
       return orders.map(order => ({
         id: order.id,
-        driverName: order.driver?.full_name || 'Unknown Driver',
+        driverName: order.profiles?.full_name || 'Unknown Driver',
         amount: order.total * 0.1, // 10% commission
         requestDate: order.created_at,
         status: order.status,
-        pixKey: order.driver?.phone, // Using phone as PIX key for now
+        pixKey: order.profiles?.phone, // Using phone as PIX key for now
         driverId: order.driver_id
       }));
     }
