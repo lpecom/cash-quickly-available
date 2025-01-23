@@ -5,6 +5,7 @@ import {
   Settings,
   ShoppingCart,
   HeadphonesIcon,
+  PuzzleIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,6 +25,7 @@ const menuItems = [
   { title: "Produtos", icon: Package, url: "/seller/products" },
   { title: "Pedidos", icon: ShoppingCart, url: "/seller/orders" },
   { title: "Financeiro", icon: DollarSign, url: "/seller/finance" },
+  { title: "Integrações", icon: PuzzleIcon, url: "/seller/integrations" },
   { title: "Suporte", icon: HeadphonesIcon, url: "/seller/support" },
   { title: "Configurações", icon: Settings, url: "/seller/settings" },
 ];
