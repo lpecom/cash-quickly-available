@@ -1,46 +1,16 @@
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Plus } from "lucide-react";
-import { Order, orderStatusMap } from "@/types/order";
-import { Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Order } from "@/types/order";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
-import { OrderActions } from "@/components/admin/OrderActions";
+import { Button } from "@/components/ui/button";
+import { Plus, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { OrderDetailsPanel } from "@/components/admin/OrderDetailsPanel";
 
 const AdminOrders = () => {
-  const queryClient = useQueryClient();
-  const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
-  const [pendingStatusChange, setPendingStatusChange] = useState<{
-    orderId: string;
-    newStatus: Order['status'];
-  } | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -53,7 +23,6 @@ const AdminOrders = () => {
 
       if (error) {
         console.error('Error fetching orders:', error);
-        toast.error('Failed to load orders');
         throw error;
       }
 
@@ -61,56 +30,6 @@ const AdminOrders = () => {
       return data as Order[];
     },
   });
-
-  const handleCallDriver = async (orderId: string) => {
-    try {
-      setLoadingOrderId(orderId);
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          status: 'confirmed',
-          driver_id: null 
-        })
-        .eq('id', orderId);
-
-      if (error) {
-        toast.error(`Failed to call driver: ${error.message}`);
-        return;
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success('Order is now available for drivers');
-    } catch (error) {
-      console.error('Error in handleCallDriver:', error);
-      toast.error('An unexpected error occurred');
-    } finally {
-      setLoadingOrderId(null);
-    }
-  };
-
-  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-    try {
-      setLoadingOrderId(orderId);
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (error) {
-        toast.error(`Failed to update order status: ${error.message}`);
-        return;
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success(`Order status updated to ${orderStatusMap[newStatus]}`);
-    } catch (error) {
-      console.error('Error in handleStatusChange:', error);
-      toast.error('An unexpected error occurred while updating the order');
-    } finally {
-      setLoadingOrderId(null);
-      setPendingStatusChange(null);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -121,131 +40,58 @@ const AdminOrders = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Orders
-            </h1>
-            <p className="text-base text-muted-foreground mt-1">
-              Manage and track all customer orders
-            </p>
-          </div>
-          <Button asChild>
-            <Link to="/admin/orders/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Order
-            </Link>
+    <div className="flex gap-6 h-[calc(100vh-6rem)]">
+      <div className="w-1/3 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">All Orders</h1>
+          <Button variant="outline" className="gap-2">
+            <Filter className="w-4 h-4" />
+            Filters
           </Button>
+        </div>
+
+        <div className="space-y-4 overflow-auto pr-4" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
+          {orders?.map((order) => (
+            <div
+              key={order.id}
+              className={`bg-card rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                selectedOrder?.id === order.id ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => setSelectedOrder(order)}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">Order #{order.id.slice(0, 8)}</h3>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(order.id);
+                      }}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      📋
+                    </button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(order.created_at), "h:mma")} · Today
+                  </p>
+                </div>
+                <OrderStatusBadge status={order.status as Order['status']} />
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-medium">{order.customer_name}</p>
+                <p className="text-sm text-muted-foreground truncate">{order.address}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-[100px] font-medium">ID</TableHead>
-              <TableHead className="font-medium">Customer</TableHead>
-              <TableHead className="hidden md:table-cell font-medium">Address</TableHead>
-              <TableHead className="font-medium">Status</TableHead>
-              <TableHead className="text-right font-medium">Total</TableHead>
-              <TableHead className="hidden md:table-cell font-medium">Date</TableHead>
-              <TableHead className="w-[100px] font-medium">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders?.map((order) => (
-              <TableRow 
-                key={order.id} 
-                className={`${
-                  loadingOrderId === order.id ? "animate-pulse" : ""
-                }`}
-              >
-                <TableCell className="font-medium text-sm">
-                  #{order.id.slice(0, 8)}
-                </TableCell>
-                <TableCell className="text-sm">{order.customer_name}</TableCell>
-                <TableCell className="hidden md:table-cell max-w-[200px] truncate text-sm">
-                  {order.address}
-                </TableCell>
-                <TableCell>
-                  <Select 
-                    defaultValue={order.status}
-                    onValueChange={(value) => setPendingStatusChange({ 
-                      orderId: order.id, 
-                      newStatus: value as Order['status'] 
-                    })}
-                    disabled={loadingOrderId === order.id}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue>
-                        <OrderStatusBadge status={order.status as Order['status']} />
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(orderStatusMap).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          <OrderStatusBadge status={value as Order['status']} />
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell className="text-right font-medium text-sm">
-                  R$ {order.total.toFixed(2)}
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                  {new Date(order.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <OrderActions
-                    orderId={order.id}
-                    status={order.status}
-                    onCallDriver={handleCallDriver}
-                    isLoading={loadingOrderId === order.id}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="flex-1 bg-card rounded-lg p-6">
+        <OrderDetailsPanel order={selectedOrder} />
       </div>
-
-      <AlertDialog 
-        open={pendingStatusChange !== null}
-        onOpenChange={(open) => !open && setPendingStatusChange(null)}
-      >
-        <AlertDialogContent className="sm:max-w-[425px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm status change</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to change the order status to{" "}
-              {pendingStatusChange && orderStatusMap[pendingStatusChange.newStatus]}?
-              {pendingStatusChange?.newStatus === 'confirmed' && (
-                <p className="mt-2 text-yellow-600">
-                  This will make the order available for drivers.
-                </p>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingStatusChange) {
-                  handleStatusChange(
-                    pendingStatusChange.orderId,
-                    pendingStatusChange.newStatus
-                  );
-                }
-              }}
-            >
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
