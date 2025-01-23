@@ -44,6 +44,7 @@ const AdminOrders = () => {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
+      console.log('Fetching orders...');
       const { data, error } = await supabase
         .from('orders')
         .select('*')
@@ -55,6 +56,7 @@ const AdminOrders = () => {
         throw error;
       }
 
+      console.log('Orders fetched:', data);
       return data as Order[];
     },
   });
@@ -62,11 +64,17 @@ const AdminOrders = () => {
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
       setLoadingOrderId(orderId);
-      console.log('Updating order status:', { orderId, newStatus }); // Debug log
+      console.log('Updating order status:', { orderId, newStatus });
+
+      // If status is being set to 'confirmed', ensure driver_id is null
+      const updateData = {
+        status: newStatus,
+        ...(newStatus === 'confirmed' ? { driver_id: null } : {})
+      };
 
       const { error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update(updateData)
         .eq('id', orderId);
 
       if (error) {
