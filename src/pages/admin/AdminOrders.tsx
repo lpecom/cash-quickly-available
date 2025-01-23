@@ -15,6 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Eye, Loader2 } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
@@ -26,6 +36,10 @@ import { useState } from "react";
 const AdminOrders = () => {
   const queryClient = useQueryClient();
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    orderId: string;
+    newStatus: Order['status'];
+  } | null>(null);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -140,7 +154,10 @@ const AdminOrders = () => {
                 <TableCell>
                   <Select 
                     value={order.status}
-                    onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
+                    onValueChange={(value) => setPendingStatusChange({ 
+                      orderId: order.id, 
+                      newStatus: value as Order['status'] 
+                    })}
                     disabled={loadingOrderId === order.id}
                   >
                     <SelectTrigger className="w-[180px]">
@@ -184,6 +201,39 @@ const AdminOrders = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog 
+        open={pendingStatusChange !== null}
+        onOpenChange={(open) => !open && setPendingStatusChange(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar mudança de status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar o status do pedido para{" "}
+              {pendingStatusChange && orderStatusMap[pendingStatusChange.newStatus]}?
+              {pendingStatusChange?.newStatus === 'confirmed' && (
+                <p className="mt-2 text-yellow-600">
+                  Isso irá disponibilizar o pedido para os motoboys.
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingStatusChange) {
+                  handleStatusChange(pendingStatusChange.orderId, pendingStatusChange.newStatus);
+                  setPendingStatusChange(null);
+                }
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
