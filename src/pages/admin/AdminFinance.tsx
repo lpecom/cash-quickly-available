@@ -10,56 +10,112 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data - replace with real data later
-const paymentRequests = [
-  {
-    id: "1",
-    driverName: "João Silva",
-    amount: 890.5,
-    requestDate: new Date(),
-    status: "pending",
-    pixKey: "123.456.789-00",
-  },
-  {
-    id: "2",
-    driverName: "Maria Santos",
-    amount: 650.75,
-    requestDate: new Date(Date.now() - 86400000),
-    status: "approved",
-    pixKey: "maria@email.com",
-  },
-];
+interface PaymentRequest {
+  id: string;
+  driverName: string;
+  amount: number;
+  requestDate: string;
+  status: string;
+  pixKey?: string;
+  driverId: string;
+}
 
 const AdminFinance = () => {
   const { toast } = useToast();
-  const [requests, setRequests] = useState(paymentRequests);
+  
+  const { data: paymentRequests, isLoading, refetch } = useQuery({
+    queryKey: ['payment-requests'],
+    queryFn: async () => {
+      // Fetch orders with driver information
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          total,
+          created_at,
+          status,
+          driver_id,
+          profiles:driver_id (
+            full_name,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-  const handleApprove = (requestId: string) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === requestId ? { ...req, status: "approved" } : req
-      )
-    );
-    toast({
-      title: "Pagamento aprovado",
-      description: "O pagamento foi aprovado com sucesso.",
-    });
+      if (error) throw error;
+
+      return orders.map(order => ({
+        id: order.id,
+        driverName: order.profiles?.full_name || 'Unknown Driver',
+        amount: order.total * 0.1, // 10% commission
+        requestDate: order.created_at,
+        status: order.status,
+        pixKey: order.profiles?.phone, // Using phone as PIX key for now
+        driverId: order.driver_id
+      }));
+    }
+  });
+
+  const handleApprove = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'paid' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Pagamento aprovado",
+        description: "O pagamento foi aprovado com sucesso.",
+      });
+      
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível aprovar o pagamento.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleReject = (requestId: string) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === requestId ? { ...req, status: "rejected" } : req
-      )
-    );
-    toast({
-      title: "Pagamento rejeitado",
-      description: "O pagamento foi rejeitado.",
-      variant: "destructive",
-    });
+  const handleReject = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'rejected' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Pagamento rejeitado",
+        description: "O pagamento foi rejeitado.",
+        variant: "destructive",
+      });
+      
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível rejeitar o pagamento.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Carregando pagamentos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -83,25 +139,25 @@ const AdminFinance = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requests.map((request) => (
+            {paymentRequests?.map((request) => (
               <TableRow key={request.id}>
                 <TableCell>
-                  {format(request.requestDate, "dd/MM/yyyy HH:mm")}
+                  {format(new Date(request.requestDate), "dd/MM/yyyy HH:mm")}
                 </TableCell>
                 <TableCell>{request.driverName}</TableCell>
-                <TableCell>{request.pixKey}</TableCell>
+                <TableCell>{request.pixKey || 'Não informado'}</TableCell>
                 <TableCell>R$ {request.amount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
-                      request.status === "approved"
+                      request.status === "paid"
                         ? "default"
                         : request.status === "rejected"
                         ? "destructive"
                         : "secondary"
                     }
                   >
-                    {request.status === "approved"
+                    {request.status === "paid"
                       ? "Aprovado"
                       : request.status === "rejected"
                       ? "Rejeitado"
