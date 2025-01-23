@@ -10,7 +10,6 @@ import { ShopifyOnboarding } from "./ShopifyOnboarding";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 
-// Define as a type that matches the Json type structure
 type ShopifySettingsData = {
   [key: string]: string | null;
   store_name: string;
@@ -50,12 +49,17 @@ export function ShopifySettings() {
     }
   });
 
+  const defaultSettings: ShopifySettingsData = {
+    store_name: '',
+    location_id: '',
+  };
+
   const form = useForm<ShopifySettingsFormValues>({
     defaultValues: {
       shopify_enabled: sellerProfile?.shopify_enabled ?? false,
       shopify_settings: {
-        store_name: (sellerProfile?.shopify_settings as ShopifySettingsData)?.store_name ?? '',
-        location_id: (sellerProfile?.shopify_settings as ShopifySettingsData)?.location_id ?? '',
+        store_name: ((sellerProfile?.shopify_settings as any)?.store_name as string) ?? defaultSettings.store_name,
+        location_id: ((sellerProfile?.shopify_settings as any)?.location_id as string) ?? defaultSettings.location_id,
       },
     },
   });
