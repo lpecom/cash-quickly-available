@@ -62,7 +62,7 @@ export const BasicProductInfo = ({ form }: BasicProductInfoProps) => {
             <FormItem>
               <FormLabel>Preço</FormLabel>
               <FormControl>
-                <Input {...field} className="bg-background" placeholder="0.00" />
+                <Input {...field} className="bg-background" placeholder="0,00" />
               </FormControl>
               <FormMessage />
             </FormItem>

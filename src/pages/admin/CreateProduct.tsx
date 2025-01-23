@@ -86,7 +86,7 @@ const CreateProduct = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user?.id) {
-        throw new Error("User not authenticated");
+        throw new Error("Usuário não autenticado");
       }
 
       const processedVariations = values.variations.map(v => ({
@@ -171,28 +171,28 @@ const CreateProduct = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/admin/products">Products</BreadcrumbLink>
+            <BreadcrumbLink href="/admin/products">Produtos</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Create Product</BreadcrumbPage>
+            <BreadcrumbPage>Criar Produto</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex items-center gap-2">
         <Package className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Create Product</h1>
+        <h1 className="text-2xl font-bold">Criar Produto</h1>
       </div>
 
       <Card className="border-2 border-muted shadow-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            <CardTitle>Product Information</CardTitle>
+            <CardTitle>Informações do Produto</CardTitle>
           </div>
           <CardDescription>
-            Fill in the information for the new product
+            Preencha as informações do novo produto
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -212,7 +212,7 @@ const CreateProduct = () => {
                 disabled={createProduct.isPending}
               >
                 <Package className="h-4 w-4 mr-2" />
-                {createProduct.isPending ? "Creating..." : "Create Product"}
+                {createProduct.isPending ? "Criando..." : "Criar Produto"}
               </Button>
             </form>
           </Form>

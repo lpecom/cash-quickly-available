@@ -116,10 +116,8 @@ const AdminProductDetails = () => {
     },
   });
 
-  // Update form values when product data is loaded
   useEffect(() => {
     if (product) {
-      // Safely cast variations to the correct type and handle potential null/undefined
       const productVariations = product.variations as { name: string; options: string[] }[] || [];
       const variations = productVariations.map(v => ({
         name: v.name || "",
@@ -188,34 +186,34 @@ const AdminProductDetails = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/admin/products">Products</BreadcrumbLink>
+            <BreadcrumbLink href="/admin/products">Produtos</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Product Details</BreadcrumbPage>
+            <BreadcrumbPage>Detalhes do Produto</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex items-center gap-2">
         <Package className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Product Details</h1>
+        <h1 className="text-2xl font-bold">Detalhes do Produto</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <MetricCard
-          title="Sales (30 days)"
+          title="Vendas (30 dias)"
           value={`R$ ${orderMetrics?.totalRevenue?.toFixed(2) || '0,00'}`}
           icon={TrendingUp}
           trend={orderMetrics?.revenueTrend}
         />
         <MetricCard
-          title="Orders"
+          title="Pedidos"
           value={orderMetrics?.totalOrders?.toString() || '0'}
           icon={ShoppingCart}
         />
         <MetricCard
-          title="Units Sold"
+          title="Unidades Vendidas"
           value={orderMetrics?.totalQuantity?.toString() || '0'}
           icon={Truck}
         />
@@ -226,10 +224,10 @@ const AdminProductDetails = () => {
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
-              <CardTitle>Product Information</CardTitle>
+              <CardTitle>Informações do Produto</CardTitle>
             </div>
             <CardDescription>
-              Update product information
+              Atualize as informações do produto
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -242,7 +240,7 @@ const AdminProductDetails = () => {
                   disabled={isLoading}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? "Saving..." : "Save Changes"}
+                  {isLoading ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </form>
             </Form>
