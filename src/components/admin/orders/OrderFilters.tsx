@@ -18,6 +18,21 @@ interface OrderFiltersProps {
 export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
   const [search, setSearch] = useState("");
 
+  const getStatusGroup = (status: OrderStatus) => {
+    switch (status) {
+      case "pending":
+      case "confirmed":
+      case "on_route":
+        return "active";
+      case "delivered":
+        return "completed";
+      case "not_delivered":
+        return "rescheduled";
+      default:
+        return "all";
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -42,18 +57,34 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
             }}
           />
           <Select
-            onValueChange={(value) => onFiltersChange({ status: value as OrderStatus | "all" })}
+            onValueChange={(value) => {
+              let statuses: OrderStatus[] = [];
+              switch (value) {
+                case "active":
+                  statuses = ["pending", "confirmed", "on_route"];
+                  break;
+                case "completed":
+                  statuses = ["delivered"];
+                  break;
+                case "rescheduled":
+                  statuses = ["not_delivered"];
+                  break;
+                default:
+                  onFiltersChange({ status: "all" });
+                  return;
+              }
+              // For now, we'll just use the first status as we update the filtering logic
+              onFiltersChange({ status: statuses[0] });
+            }}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="confirmed">Confirmado</SelectItem>
-              <SelectItem value="on_route">Em rota</SelectItem>
-              <SelectItem value="delivered">Entregue</SelectItem>
-              <SelectItem value="not_delivered">Não entregue</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="completed">Concluídos</SelectItem>
+              <SelectItem value="rescheduled">Reagendados</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="icon">

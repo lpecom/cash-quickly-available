@@ -57,7 +57,21 @@ const AdminOrders = () => {
       }
 
       if (filters.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status);
+        const statusGroups = {
+          active: ['pending', 'confirmed', 'on_route'],
+          completed: ['delivered'],
+          rescheduled: ['not_delivered']
+        };
+
+        const selectedGroup = Object.entries(statusGroups).find(([_, statuses]) => 
+          statuses.includes(filters.status as string)
+        );
+
+        if (selectedGroup) {
+          query = query.in('status', selectedGroup[1]);
+        } else {
+          query = query.eq('status', filters.status);
+        }
       }
 
       if (filters.search) {
@@ -68,7 +82,6 @@ const AdminOrders = () => {
 
       if (error) throw error;
       
-      // Ensure the status is of type OrderStatus
       return (data || []).map(order => ({
         ...order,
         status: order.status as Order["status"]
