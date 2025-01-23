@@ -8,21 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DriversMenu } from "@/components/admin/drivers/DriversMenu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-
-const mapOrderStatusToDeliveryStatus = (
-  orderStatus: string
-): "completed" | "failed" | "cancelled" => {
-  switch (orderStatus) {
-    case "delivered":
-      return "completed";
-    case "not_delivered":
-      return "failed";
-    default:
-      return "cancelled";
-  }
-};
+import { Link } from "react-router-dom";
 
 const AdminDrivers = () => {
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
+
   const { data: drivers, isLoading: isLoadingDrivers } = useQuery({
     queryKey: ['drivers'],
     queryFn: async () => {
@@ -37,14 +27,14 @@ const AdminDrivers = () => {
   });
 
   const { data: driverMetrics, isLoading: isLoadingMetrics } = useQuery({
-    queryKey: ['driver-metrics', drivers?.[0]?.id],
-    enabled: !!drivers?.[0]?.id,
+    queryKey: ['driver-metrics', selectedDriverId],
+    enabled: !!selectedDriverId,
     queryFn: async () => {
-      if (!drivers?.[0]?.id) return null;
+      if (!selectedDriverId) return null;
       
       const { data, error } = await supabase
         .rpc('get_driver_metrics', {
-          driver_uuid: drivers[0].id
+          driver_uuid: selectedDriverId
         });
 
       if (error) throw error;
@@ -53,10 +43,10 @@ const AdminDrivers = () => {
   });
 
   const { data: deliveries, isLoading: isLoadingDeliveries } = useQuery({
-    queryKey: ['driver-deliveries', drivers?.[0]?.id],
-    enabled: !!drivers?.[0]?.id,
+    queryKey: ['driver-deliveries', selectedDriverId],
+    enabled: !!selectedDriverId,
     queryFn: async () => {
-      if (!drivers?.[0]?.id) return [];
+      if (!selectedDriverId) return [];
 
       const { data: orders, error } = await supabase
         .from('orders')
@@ -68,7 +58,7 @@ const AdminDrivers = () => {
           status,
           commission
         `)
-        .eq('driver_id', drivers[0].id)
+        .eq('driver_id', selectedDriverId)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -80,7 +70,8 @@ const AdminDrivers = () => {
         date: new Date(order.created_at),
         customer: order.customer_name,
         amount: order.total,
-        status: mapOrderStatusToDeliveryStatus(order.status),
+        status: order.status === 'delivered' ? 'completed' : 
+               order.status === 'not_delivered' ? 'failed' : 'cancelled',
         commission: order.commission || 0
       }));
     }
@@ -129,27 +120,89 @@ const AdminDrivers = () => {
 
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground">
-          Gerencie entregadores e acompanhe métricas
+          {drivers?.length || 0} entregadores cadastrados
         </p>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Entregador
+        <Button asChild>
+          <Link to="/driver-signup">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Entregador
+          </Link>
         </Button>
       </div>
 
-      {driverMetrics && (
-        <DriverMetrics
-          totalDeliveries={Number(driverMetrics.total_deliveries)}
-          successRate={Number(driverMetrics.success_rate)}
-          totalEarnings={Number(driverMetrics.total_earnings)}
-          completionRate={Number(driverMetrics.completion_rate)}
-        />
-      )}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {drivers?.map((driver) => (
+          <div 
+            key={driver.id}
+            className="bg-card border rounded-lg p-6 space-y-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-semibold text-lg">
+                  {driver.full_name || 'Nome não informado'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {driver.phone || 'Telefone não informado'}
+                </p>
+                {driver.motorcycle_plate && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Placa: {driver.motorcycle_plate}
+                  </p>
+                )}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                asChild
+              >
+                <Link to={`/admin/drivers/${driver.id}`}>
+                  Ver detalhes
+                </Link>
+              </Button>
+            </div>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Histórico de Entregas</h2>
-        {deliveries && <DeliveryHistory deliveries={deliveries} />}
+            <div className="pt-4 border-t">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Cidade</p>
+                  <p className="font-medium">{driver.city || 'Não informada'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Estado</p>
+                  <p className="font-medium">{driver.state || 'Não informado'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t">
+              <Button 
+                className="w-full" 
+                variant="secondary"
+                onClick={() => setSelectedDriverId(driver.id)}
+              >
+                Ver métricas
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {selectedDriverId && driverMetrics && (
+        <>
+          <h2 className="text-xl font-semibold mt-8 mb-4">Métricas do Entregador</h2>
+          <DriverMetrics
+            totalDeliveries={Number(driverMetrics.total_deliveries)}
+            successRate={Number(driverMetrics.success_rate)}
+            totalEarnings={Number(driverMetrics.total_earnings)}
+            completionRate={Number(driverMetrics.completion_rate)}
+          />
+          
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Histórico de Entregas</h2>
+            {deliveries && <DeliveryHistory deliveries={deliveries} />}
+          </div>
+        </>
+      )}
     </div>
   );
 };
