@@ -17,7 +17,8 @@ import CreateProduct from "./pages/admin/CreateProduct";
 import AdminProductDetails from "./pages/admin/AdminProductDetails";
 import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import Index from "./pages/Index";
-import AuthPage from "./pages/auth/AuthPage";
+import AdminAuthPage from "./pages/auth/AdminAuthPage";
+import MotoboyAuthPage from "./pages/auth/MotoboyAuthPage";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import { Toaster } from "sonner";
@@ -28,7 +29,10 @@ function App() {
       <Routes>
         {/* Landing Page */}
         <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<AuthPage />} />
+        
+        {/* Auth Routes */}
+        <Route path="/auth/admin" element={<AdminAuthPage />} />
+        <Route path="/auth/motoboy" element={<MotoboyAuthPage />} />
 
         {/* Checkout Routes */}
         <Route path="/produto/:productId/checkout" element={<Checkout />} />
