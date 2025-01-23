@@ -8,13 +8,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useState } from "react";
 import { format } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { DateRange } from "react-day-picker";
 
 const AdminOrders = () => {
-  const [filters, setFilters] = useState({
-    dateRange: undefined,
-    status: undefined,
-    search: undefined,
-  });
+  const [filters, setFilters] = useState<{
+    dateRange?: DateRange;
+    status?: string;
+    search?: string;
+  }>({});
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders', filters],

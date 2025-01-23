@@ -4,10 +4,11 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 interface OrderFiltersProps {
   onFiltersChange: (filters: {
-    dateRange?: { from: Date; to: Date };
+    dateRange?: DateRange;
     status?: string;
     search?: string;
   }) => void;
@@ -36,9 +37,7 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
         <div className="flex gap-2">
           <DateRangePicker
             onChange={(range) => {
-              if (range?.from && range?.to) {
-                onFiltersChange({ dateRange: range });
-              }
+              onFiltersChange({ dateRange: range || undefined });
             }}
           />
           <Select

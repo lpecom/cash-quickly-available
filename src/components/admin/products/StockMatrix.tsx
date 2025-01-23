@@ -37,7 +37,7 @@ export const StockMatrix = ({ form, variations }: StockMatrixProps) => {
             <FormField
               key={key}
               control={form.control}
-              name={`stock.${key}`}
+              name={`stock.${key}` as any}
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center gap-4">
@@ -51,11 +51,11 @@ export const StockMatrix = ({ form, variations }: StockMatrixProps) => {
                     </div>
                     <FormControl>
                       <Input
-                        {...field}
                         type="number"
                         min="0"
                         className="w-32"
                         placeholder="0"
+                        {...field}
                       />
                     </FormControl>
                   </div>
