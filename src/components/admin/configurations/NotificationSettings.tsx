@@ -12,7 +12,7 @@ type NotificationType = "email" | "push" | "sms";
 type EventType = "order_created" | "order_accepted" | "order_delivered" | "order_cancelled";
 
 interface NotificationPreferences {
-  [key in EventType]: NotificationType[];
+  [key: string]: NotificationType[];
 }
 
 interface FormValues {
@@ -96,35 +96,26 @@ export function NotificationSettings({ config }: NotificationSettingsProps) {
                     <FormLabel>{event.label}</FormLabel>
                     <div className="space-y-2">
                       {notificationTypes.map((type) => (
-                        <FormField
+                        <FormItem
                           key={type.id}
-                          control={form.control}
-                          name={`preferences.${event.id}`}
-                          render={({ field }) => {
-                            const values = field.value as NotificationType[];
-                            return (
-                              <FormItem
-                                key={type.id}
-                                className="flex flex-row items-center space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={values.includes(type.id)}
-                                    onCheckedChange={(checked) => {
-                                      const updatedValue = checked
-                                        ? [...values, type.id]
-                                        : values.filter((value) => value !== type.id);
-                                      field.onChange(updatedValue);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {type.label}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
+                          className="flex flex-row items-center space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={(field.value as NotificationType[])?.includes(type.id)}
+                              onCheckedChange={(checked) => {
+                                const currentValue = field.value as NotificationType[] || [];
+                                const updatedValue = checked
+                                  ? [...currentValue, type.id]
+                                  : currentValue.filter((value) => value !== type.id);
+                                field.onChange(updatedValue);
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {type.label}
+                          </FormLabel>
+                        </FormItem>
                       ))}
                     </div>
                   </FormItem>
