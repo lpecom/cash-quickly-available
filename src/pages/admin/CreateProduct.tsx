@@ -48,9 +48,36 @@ const CreateProduct = () => {
     const checkAdminAccess = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const role = session?.user?.user_metadata?.role;
         
-        if (!session || (role !== 'admin' && role !== 'superadmin')) {
+        if (!session) {
+          toast({
+            title: "Acesso negado",
+            description: "Você precisa estar logado para criar produtos.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+          return;
+        }
+
+        // Get user role from profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          toast({
+            title: "Erro",
+            description: "Erro ao verificar permissões.",
+            variant: "destructive",
+          });
+          navigate("/admin/products");
+          return;
+        }
+
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
           toast({
             title: "Acesso negado",
             description: "Você não tem permissão para criar produtos.",
