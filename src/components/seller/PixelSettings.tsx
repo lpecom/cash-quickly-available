@@ -1,135 +1,87 @@
-import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Facebook, Globe, BrandTaboola, BrandTiktok } from "lucide-react";
 
 interface PixelSettingsProps {
-  config?: {
-    pixels?: {
-      facebook?: string;
-      google?: string;
-      tiktok?: string;
-      taboola?: string;
-    };
-  };
+  config?: Record<string, any>;
 }
 
 export function PixelSettings({ config }: PixelSettingsProps) {
-  const queryClient = useQueryClient();
-  const form = useForm({
-    defaultValues: {
-      facebook: config?.pixels?.facebook ?? "",
-      google: config?.pixels?.google ?? "",
-      tiktok: config?.pixels?.tiktok ?? "",
-      taboola: config?.pixels?.taboola ?? "",
-    },
-  });
-
-  const mutation = useMutation({
-    mutationFn: async (values: any) => {
-      const { error } = await supabase
-        .from('configurations')
-        .update({ value: { pixels: values } })
-        .eq('category', 'integrations')
-        .eq('key', 'pixels');
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['configurations'] });
-      toast.success("Pixel settings updated successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to update pixel settings");
-      console.error("Error updating pixel settings:", error);
-    },
-  });
-
-  const onSubmit = (values: any) => {
-    mutation.mutate(values);
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pixel Settings</CardTitle>
-        <CardDescription>
-          Configure tracking pixels for your store
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="facebook"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Facebook Pixel ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your Facebook Pixel ID" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Used for Facebook Ads tracking and analytics
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="google"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Google Tag ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your Google Tag ID" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Used for Google Analytics and Google Ads tracking
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="tiktok"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>TikTok Pixel ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your TikTok Pixel ID" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Used for TikTok Ads tracking and analytics
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="taboola"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Taboola Pixel ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your Taboola Pixel ID" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Used for Taboola advertising tracking
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="mt-4">
-              Save Changes
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <div className="grid gap-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Facebook className="h-5 w-5 text-blue-600" />
+            <CardTitle>Facebook Pixel</CardTitle>
+          </div>
+          <Button variant="outline" size="sm">Salvar</Button>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="facebook-pixel">ID do Pixel</Label>
+          <Input 
+            id="facebook-pixel" 
+            placeholder="Digite o ID do seu Facebook Pixel"
+            defaultValue={config?.facebook_pixel_id}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Globe className="h-5 w-5 text-red-600" />
+            <CardTitle>Google Tag</CardTitle>
+          </div>
+          <Button variant="outline" size="sm">Salvar</Button>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="google-tag">ID da Tag</Label>
+          <Input 
+            id="google-tag" 
+            placeholder="Digite o ID do seu Google Tag"
+            defaultValue={config?.google_tag_id}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <BrandTiktok className="h-5 w-5" />
+            <CardTitle>TikTok Pixel</CardTitle>
+          </div>
+          <Button variant="outline" size="sm">Salvar</Button>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="tiktok-pixel">ID do Pixel</Label>
+          <Input 
+            id="tiktok-pixel" 
+            placeholder="Digite o ID do seu TikTok Pixel"
+            defaultValue={config?.tiktok_pixel_id}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <BrandTaboola className="h-5 w-5 text-blue-800" />
+            <CardTitle>Taboola Pixel</CardTitle>
+          </div>
+          <Button variant="outline" size="sm">Salvar</Button>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="taboola-pixel">ID do Pixel</Label>
+          <Input 
+            id="taboola-pixel" 
+            placeholder="Digite o ID do seu Taboola Pixel"
+            defaultValue={config?.taboola_pixel_id}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
