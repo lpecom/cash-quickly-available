@@ -30,7 +30,6 @@ const AdminFinance = () => {
   const { data: paymentRequests, isLoading, refetch } = useQuery({
     queryKey: ['payment-requests'],
     queryFn: async () => {
-      // Fetch orders with driver information
       const { data: orders, error } = await supabase
         .from('orders')
         .select(`

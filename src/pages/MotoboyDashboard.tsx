@@ -2,44 +2,30 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
-import { OrderCard } from "@/components/delivery/OrderCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface Order {
-  id: string;
-  customer_name: string;
-  address: string;
-  phone: string;
-  status: string;
-  total: number;
-  delivery_instructions?: string;
-}
+type Order = Tables<"orders">;
 
 const MotoboyDashboard = () => {
-  const [currentLocation, setCurrentLocation] = useState<GeolocationPosition | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-  // Fetch orders assigned to the current motoboy
-  const { data: orders = [], isLoading } = useQuery({
-    queryKey: ['motoboy-assigned-orders'],
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ["motoboy-orders"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('Not authenticated');
-
       const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('driver_id', user.user.id)
-        .in('status', ['pending', 'in_progress'])
-        .order('created_at', { ascending: false });
+        .from("orders")
+        .select("*")
+        .eq("driver_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("status", "on_route");
 
-      if (error) {
-        console.error("Error fetching orders:", error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data as Order[];
-    }
+    },
   });
 
   // Get current location for navigation
@@ -47,88 +33,66 @@ const MotoboyDashboard = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentLocation(position);
+          setCurrentLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
         },
         (error) => {
           console.error("Error getting location:", error);
-          toast.error("Por favor, ative a localização do seu dispositivo");
+          toast.error("Não foi possível obter sua localização");
         }
       );
     }
   }, []);
 
-  const startDelivery = async (orderId: string) => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'in_progress' })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      toast.success("Entrega iniciada!");
-    } catch (error) {
-      console.error("Error starting delivery:", error);
-      toast.error("Erro ao iniciar entrega");
-    }
-  };
-
-  const contactCustomer = (phone: string) => {
-    const whatsappUrl = `https://wa.me/${phone}`;
-    window.open(whatsappUrl, '_blank');
-    toast("Redirecionando para WhatsApp");
-  };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-secondary p-4 flex items-center justify-center">
-        <p>Carregando entregas...</p>
-      </div>
-    );
+    return <div>Carregando...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-secondary p-4 pb-20">
-      <div className="max-w-lg mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold">Entregas</h1>
-            <p className="text-sm text-muted-foreground">
-              Gerencie suas entregas
-            </p>
-          </div>
-          <Badge variant="outline" className="px-3 py-1">
-            <Package className="w-4 h-4 mr-1" />
-            {orders.length}
-          </Badge>
-        </div>
-
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={{
-                id: order.id,
-                customer: order.customer_name,
-                address: order.address,
-                status: order.status,
-                amount: `R$ ${order.total.toFixed(2)}`,
-                items: "Ver produtos",
-                phone: order.phone,
-                isRecommended: false,
-                deliveryInstructions: order.delivery_instructions
-              }}
-              onStartDelivery={startDelivery}
-              onContactCustomer={contactCustomer}
-            />
-          ))}
-
-          {orders.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma entrega pendente no momento
+    <div className="container mx-auto p-4">
+      <h1 className="mb-6 text-2xl font-bold">Pedidos em Rota</h1>
+      <div className="grid gap-4">
+        {orders?.map((order) => (
+          <div
+            key={order.id}
+            className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                <span className="font-semibold">Pedido #{order.id}</span>
+              </div>
+              <Badge>{order.status}</Badge>
             </div>
-          )}
-        </div>
+            <div className="space-y-2">
+              <p>Cliente: {order.customer_name}</p>
+              <p>Endereço: {order.address}</p>
+              <p>Telefone: {order.phone}</p>
+              {order.delivery_instructions && (
+                <p>Instruções: {order.delivery_instructions}</p>
+              )}
+            </div>
+            {currentLocation && (
+              <a
+                href={`https://www.google.com/maps/dir/${currentLocation.latitude},${currentLocation.longitude}/${encodeURIComponent(
+                  order.address
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 block rounded bg-primary px-4 py-2 text-center text-primary-foreground hover:bg-primary/90"
+              >
+                Navegar até o endereço
+              </a>
+            )}
+          </div>
+        ))}
+        {orders?.length === 0 && (
+          <p className="text-center text-muted-foreground">
+            Nenhum pedido em rota no momento
+          </p>
+        )}
       </div>
     </div>
   );
