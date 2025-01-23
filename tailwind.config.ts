@@ -22,11 +22,11 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#F8FAFC",
+        foreground: "#1E293B",
         primary: {
-          DEFAULT: "#1A5D52", // Deeper, more professional green
-          foreground: "#FFFFFF",
+          DEFAULT: "#ECFCCB",
+          foreground: "#1E293B",
         },
         secondary: {
           DEFAULT: "#F8FAFC",
@@ -38,7 +38,7 @@ export default {
         },
         muted: {
           DEFAULT: "#E2E8F0",
-          foreground: "#475569",
+          foreground: "#64748B",
         },
         accent: {
           DEFAULT: "#F1F5F9",
@@ -50,25 +50,16 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "1rem",
+        md: "0.75rem",
+        sm: "0.5rem",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },
-      keyframes: {
-        "border-animate": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" }
-        }
+      boxShadow: {
+        card: "0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)",
       },
-      animation: {
-        "border": "border-animate 3s linear infinite",
-      },
-      backdropBlur: {
-        xs: '2px',
-      }
     },
   },
   plugins: [require("tailwindcss-animate")],
