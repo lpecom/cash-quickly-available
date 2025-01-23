@@ -7,7 +7,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -25,13 +24,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Eye, Loader2, Truck } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { OrderActions } from "@/components/admin/OrderActions";
 
 const AdminOrders = () => {
   const queryClient = useQueryClient();
@@ -64,8 +65,6 @@ const AdminOrders = () => {
   const handleCallDriver = async (orderId: string) => {
     try {
       setLoadingOrderId(orderId);
-      console.log('Calling driver for order:', orderId);
-
       const { error } = await supabase
         .from('orders')
         .update({ 
@@ -75,7 +74,6 @@ const AdminOrders = () => {
         .eq('id', orderId);
 
       if (error) {
-        console.error('Error calling driver:', error);
         toast.error(`Failed to call driver: ${error.message}`);
         return;
       }
@@ -93,15 +91,12 @@ const AdminOrders = () => {
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
       setLoadingOrderId(orderId);
-      console.log('Updating order status:', { orderId, newStatus });
-
       const { error } = await supabase
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);
 
       if (error) {
-        console.error('Error updating order status:', error);
         toast.error(`Failed to update order status: ${error.message}`);
         return;
       }
@@ -119,43 +114,57 @@ const AdminOrders = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading orders...</p>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="animate-pulse text-muted-foreground">Loading orders...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Pedidos</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage and track all customer orders
+          </p>
+        </div>
         <Button asChild>
           <Link to="/admin/orders/new">
             <Plus className="mr-2 h-4 w-4" />
-            Novo Pedido
+            New Order
           </Link>
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Endereço</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead className="hidden md:table-cell">Address</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Ações</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="hidden md:table-cell">Date</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders?.map((order) => (
-              <TableRow key={order.id} className={loadingOrderId === order.id ? "animate-pulse" : ""}>
-                <TableCell>#{order.id.slice(0, 8)}</TableCell>
+              <TableRow 
+                key={order.id} 
+                className={`${
+                  loadingOrderId === order.id ? "animate-pulse" : ""
+                }`}
+              >
+                <TableCell className="font-medium">
+                  #{order.id.slice(0, 8)}
+                </TableCell>
                 <TableCell>{order.customer_name}</TableCell>
-                <TableCell>{order.address}</TableCell>
+                <TableCell className="hidden md:table-cell max-w-[200px] truncate">
+                  {order.address}
+                </TableCell>
                 <TableCell>
                   <Select 
                     defaultValue={order.status}
@@ -167,53 +176,31 @@ const AdminOrders = () => {
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue>
-                        <div className="flex items-center gap-2">
-                          {loadingOrderId === order.id ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Atualizando...</span>
-                            </>
-                          ) : (
-                            <Badge className={order.status === 'confirmed' ? 'bg-green-500' : ''}>
-                              {orderStatusMap[order.status as keyof typeof orderStatusMap]}
-                            </Badge>
-                          )}
-                        </div>
+                        <OrderStatusBadge status={order.status as Order['status']} />
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(orderStatusMap).map(([value, label]) => (
                         <SelectItem key={value} value={value}>
-                          {label}
+                          <OrderStatusBadge status={value as Order['status']} />
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>R$ {order.total.toFixed(2)}</TableCell>
-                <TableCell>
+                <TableCell className="text-right">
+                  R$ {order.total.toFixed(2)}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
-                <TableCell className="space-x-2">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/admin/orders/${order.id}`}>
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  {order.status === 'pending' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleCallDriver(order.id)}
-                      disabled={loadingOrderId === order.id}
-                    >
-                      {loadingOrderId === order.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Truck className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
+                <TableCell>
+                  <OrderActions
+                    orderId={order.id}
+                    status={order.status}
+                    onCallDriver={handleCallDriver}
+                    isLoading={loadingOrderId === order.id}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -227,27 +214,30 @@ const AdminOrders = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar mudança de status</AlertDialogTitle>
+            <AlertDialogTitle>Confirm status change</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja alterar o status do pedido para{" "}
+              Are you sure you want to change the order status to{" "}
               {pendingStatusChange && orderStatusMap[pendingStatusChange.newStatus]}?
               {pendingStatusChange?.newStatus === 'confirmed' && (
                 <p className="mt-2 text-yellow-600">
-                  Isso irá disponibilizar o pedido para os motoboys.
+                  This will make the order available for drivers.
                 </p>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingStatusChange) {
-                  handleStatusChange(pendingStatusChange.orderId, pendingStatusChange.newStatus);
+                  handleStatusChange(
+                    pendingStatusChange.orderId,
+                    pendingStatusChange.newStatus
+                  );
                 }
               }}
             >
-              Confirmar
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
