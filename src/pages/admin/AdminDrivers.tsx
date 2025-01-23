@@ -1,40 +1,97 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { DriverMetrics } from "@/components/admin/drivers/DriverMetrics";
 import { DeliveryHistory } from "@/components/admin/drivers/DeliveryHistory";
-
-// Mock data - replace with real data later
-const mockDeliveries = [
-  {
-    id: "1",
-    orderId: "ORD001",
-    date: new Date(),
-    customer: "João Silva",
-    amount: 150.00,
-    status: "completed" as const,
-    commission: 15.00,
-  },
-  {
-    id: "2",
-    orderId: "ORD002",
-    date: new Date(Date.now() - 86400000),
-    customer: "Maria Santos",
-    amount: 89.90,
-    status: "failed" as const,
-    commission: 8.99,
-  },
-  {
-    id: "3",
-    orderId: "ORD003",
-    date: new Date(Date.now() - 172800000),
-    customer: "Pedro Oliveira",
-    amount: 120.50,
-    status: "completed" as const,
-    commission: 12.05,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminDrivers = () => {
+  const { data: drivers, isLoading: isLoadingDrivers } = useQuery({
+    queryKey: ['drivers'],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'motoboy');
+
+      if (error) throw error;
+      return profiles;
+    }
+  });
+
+  const { data: driverMetrics, isLoading: isLoadingMetrics } = useQuery({
+    queryKey: ['driver-metrics', drivers?.[0]?.id],
+    enabled: !!drivers?.[0]?.id,
+    queryFn: async () => {
+      if (!drivers?.[0]?.id) return null;
+      
+      const { data, error } = await supabase
+        .rpc('get_driver_metrics', {
+          driver_uuid: drivers[0].id
+        });
+
+      if (error) throw error;
+      return data[0];
+    }
+  });
+
+  const { data: deliveries, isLoading: isLoadingDeliveries } = useQuery({
+    queryKey: ['driver-deliveries', drivers?.[0]?.id],
+    enabled: !!drivers?.[0]?.id,
+    queryFn: async () => {
+      if (!drivers?.[0]?.id) return [];
+
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          created_at,
+          customer_name,
+          total,
+          status,
+          commission
+        `)
+        .eq('driver_id', drivers[0].id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      return orders.map(order => ({
+        id: order.id,
+        orderId: order.id,
+        date: new Date(order.created_at),
+        customer: order.customer_name,
+        amount: order.total,
+        status: order.status === 'delivered' ? 'completed' : 
+                order.status === 'not_delivered' ? 'failed' : 'cancelled',
+        commission: order.commission || 0
+      }));
+    }
+  });
+
+  if (isLoadingDrivers) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64 mt-2" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -50,16 +107,18 @@ const AdminDrivers = () => {
         </Button>
       </div>
 
-      <DriverMetrics
-        totalDeliveries={156}
-        successRate={94}
-        totalEarnings={2890.50}
-        completionRate={92}
-      />
+      {driverMetrics && (
+        <DriverMetrics
+          totalDeliveries={Number(driverMetrics.total_deliveries)}
+          successRate={Number(driverMetrics.success_rate)}
+          totalEarnings={Number(driverMetrics.total_earnings)}
+          completionRate={Number(driverMetrics.completion_rate)}
+        />
+      )}
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Histórico de Entregas</h2>
-        <DeliveryHistory deliveries={mockDeliveries} />
+        {deliveries && <DeliveryHistory deliveries={deliveries} />}
       </div>
     </div>
   );

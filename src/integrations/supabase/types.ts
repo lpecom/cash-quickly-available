@@ -55,6 +55,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           address: string
+          commission: number | null
           created_at: string
           customer_id: string | null
           customer_name: string
@@ -72,6 +73,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           address: string
+          commission?: number | null
           created_at?: string
           customer_id?: string | null
           customer_name: string
@@ -89,6 +91,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           address?: string
+          commission?: number | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string
@@ -191,7 +194,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_driver_metrics: {
+        Args: {
+          driver_uuid: string
+        }
+        Returns: {
+          total_deliveries: number
+          success_rate: number
+          total_earnings: number
+          completion_rate: number
+        }[]
+      }
     }
     Enums: {
       user_role: "admin" | "motoboy" | "superadmin"
