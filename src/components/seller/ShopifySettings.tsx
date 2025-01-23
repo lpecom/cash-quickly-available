@@ -8,23 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ShopifyOnboarding } from "./ShopifyOnboarding";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
-interface ShopifySettings {
-  store_name?: string;
-  location_id?: string;
+// Define as a type that matches the Json type structure
+type ShopifySettingsData = {
+  [key: string]: string | null;
+  store_name: string;
+  location_id: string;
 }
 
 interface SellerProfile {
   id: string;
   user_id: string;
   shopify_enabled: boolean;
-  shopify_settings: ShopifySettings;
+  shopify_settings: ShopifySettingsData | null;
   shopify_onboarding_status: string;
 }
 
 interface ShopifySettingsFormValues {
   shopify_enabled: boolean;
-  shopify_settings: ShopifySettings;
+  shopify_settings: ShopifySettingsData;
 }
 
 export function ShopifySettings() {
@@ -66,7 +69,7 @@ export function ShopifySettings() {
         .from('seller_profiles')
         .update({
           shopify_enabled: values.shopify_enabled,
-          shopify_settings: values.shopify_settings,
+          shopify_settings: values.shopify_settings as Json,
           shopify_onboarding_status: values.shopify_enabled ? 'pending' : 'completed',
         })
         .eq('user_id', user.id);
