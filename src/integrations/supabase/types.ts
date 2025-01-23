@@ -93,6 +93,8 @@ export type Database = {
           driver_id: string | null
           id: string
           phone: string
+          seller_commission: number | null
+          seller_id: string | null
           status: string
           total: number
           updated_at: string
@@ -111,6 +113,8 @@ export type Database = {
           driver_id?: string | null
           id?: string
           phone: string
+          seller_commission?: number | null
+          seller_id?: string | null
           status?: string
           total?: number
           updated_at?: string
@@ -129,6 +133,8 @@ export type Database = {
           driver_id?: string | null
           id?: string
           phone?: string
+          seller_commission?: number | null
+          seller_id?: string | null
           status?: string
           total?: number
           updated_at?: string
@@ -146,6 +152,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -302,6 +315,48 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_profiles: {
+        Row: {
+          active: boolean | null
+          business_document: string | null
+          business_name: string
+          commission_rate: number | null
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          payment_info: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          business_document?: string | null
+          business_name: string
+          commission_rate?: number | null
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          payment_info?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          business_document?: string | null
+          business_name?: string
+          commission_rate?: number | null
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          payment_info?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           active: boolean | null
@@ -354,7 +409,7 @@ export type Database = {
     }
     Enums: {
       notification_type: "email" | "sms" | "push"
-      user_role: "admin" | "motoboy" | "superadmin"
+      user_role: "admin" | "motoboy" | "superadmin" | "seller"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -23,6 +23,8 @@ import DriverSignup from "./pages/auth/DriverSignup";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import { Toaster } from "sonner";
+import SellerLayout from "./layouts/SellerLayout";
+import SellerDashboard from "./pages/seller/SellerDashboard";
 
 function App() {
   return (
@@ -60,6 +62,12 @@ function App() {
           <Route path="products/new" element={<CreateProduct />} />
           <Route path="products/:productId" element={<AdminProductDetails />} />
           <Route path="settings" element={<AdminSettings />} />
+        </Route>
+
+        {/* Seller Routes */}
+        <Route path="/seller" element={<SellerLayout />}>
+          <Route index element={<SellerDashboard />} />
+          {/* Other seller routes will be added later */}
         </Route>
       </Routes>
       <Toaster />
