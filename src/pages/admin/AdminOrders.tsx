@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Eye, Loader2 } from "lucide-react";
+import { Plus, Eye, Loader2, Truck } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,12 +61,40 @@ const AdminOrders = () => {
     },
   });
 
+  const handleCallDriver = async (orderId: string) => {
+    try {
+      setLoadingOrderId(orderId);
+      console.log('Calling driver for order:', orderId);
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'confirmed',
+          driver_id: null 
+        })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error calling driver:', error);
+        toast.error('Failed to call driver');
+        return;
+      }
+
+      toast.success('Order is now available for drivers');
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } catch (error) {
+      console.error('Error in handleCallDriver:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoadingOrderId(null);
+    }
+  };
+
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
       setLoadingOrderId(orderId);
       console.log('Updating order status:', { orderId, newStatus });
 
-      // If status is being set to 'confirmed', ensure driver_id is null
       const updateData = {
         status: newStatus,
         ...(newStatus === 'confirmed' ? { driver_id: null } : {})
@@ -83,29 +111,14 @@ const AdminOrders = () => {
         return;
       }
 
-      // Show success message
       toast.success(`Order status updated to ${orderStatusMap[newStatus]}`);
-      
-      // Refresh orders data
-      await queryClient.invalidateQueries({ queryKey: ['orders'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error) {
       console.error('Error in handleStatusChange:', error);
       toast.error('An unexpected error occurred');
     } finally {
       setLoadingOrderId(null);
     }
-  };
-
-  const getStatusColor = (status: Order["status"]) => {
-    const colors = {
-      pending: "bg-yellow-500",
-      confirmed: "bg-blue-500",
-      on_route: "bg-purple-500",
-      delivered: "bg-green-500",
-      not_delivered: "bg-red-500",
-    };
-    return colors[status] || "bg-gray-500";
   };
 
   if (isLoading) {
@@ -165,7 +178,7 @@ const AdminOrders = () => {
                               <span>Atualizando...</span>
                             </>
                           ) : (
-                            <Badge className={getStatusColor(order.status)}>
+                            <Badge className={order.status === 'confirmed' ? 'bg-green-500' : ''}>
                               {orderStatusMap[order.status]}
                             </Badge>
                           )}
@@ -185,12 +198,26 @@ const AdminOrders = () => {
                 <TableCell>
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
-                <TableCell>
+                <TableCell className="space-x-2">
                   <Button variant="ghost" size="sm" asChild>
                     <Link to={`/admin/orders/${order.id}`}>
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>
+                  {order.status === 'pending' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCallDriver(order.id)}
+                      disabled={loadingOrderId === order.id}
+                    >
+                      {loadingOrderId === order.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Truck className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
