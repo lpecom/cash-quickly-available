@@ -17,22 +17,6 @@ interface Order {
   delivery_instructions?: string;
 }
 
-const fetchOrders = async () => {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("status", "confirmed")
-    .is("driver_id", null)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching orders:", error);
-    throw error;
-  }
-
-  return data as Order[];
-};
-
 const MotoboySales = () => {
   const queryClient = useQueryClient();
   const { data: orders = [], isLoading, error } = useQuery({
@@ -81,22 +65,16 @@ const MotoboySales = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary p-4 pb-20">
-      <div className="max-w-lg mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
+    <div className="min-h-screen bg-secondary pb-6">
+      <ScrollArea className="h-[calc(100vh-4rem)]">
+        <div className="container mx-auto p-4">
+          <div className="mb-6">
             <h1 className="text-xl font-bold">Pedidos Disponíveis</h1>
             <p className="text-sm text-muted-foreground">
-              Aceite pedidos para entrega
+              {orders.length} pedidos aguardando entregador
             </p>
           </div>
-          <Badge variant="outline" className="px-3 py-1">
-            <Package className="w-4 h-4 mr-1" />
-            {orders.length}
-          </Badge>
-        </div>
 
-        <ScrollArea className="h-[calc(100vh-180px)]">
           <div className="space-y-4">
             {orders.map((order) => (
               <div
@@ -144,8 +122,8 @@ const MotoboySales = () => {
               </div>
             )}
           </div>
-        </ScrollArea>
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 };

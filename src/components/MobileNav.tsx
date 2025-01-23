@@ -5,8 +5,8 @@ const MobileNav = () => {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 md:hidden">
-      <div className="flex justify-around items-center">
+    <div className="sticky top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-2 z-50">
+      <div className="flex justify-around items-center max-w-lg mx-auto">
         <Link
           to="/motoboy"
           className={`flex flex-col items-center ${
