@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
 import { CreateProductHeader } from "@/components/admin/products/CreateProductHeader";
 import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
@@ -23,9 +23,7 @@ import { ProductVariations } from "@/components/admin/products/ProductVariations
 const CreateProduct = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [session, setSession] = useState(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -43,7 +41,6 @@ const CreateProduct = () => {
     const checkAdminAccess = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
         
         if (!session) {
           toast({
@@ -79,16 +76,12 @@ const CreateProduct = () => {
     };
 
     checkAdminAccess();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
   }, [navigate, toast]);
 
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session?.user?.id) {
         throw new Error("User not authenticated");
       }
@@ -98,33 +91,30 @@ const CreateProduct = () => {
         options: v.options.split(',').map(o => o.trim()),
       }));
 
+      const productData = {
+        name: values.name,
+        description: values.description || null,
+        price: parseFloat(values.price),
+        sku: values.sku,
+        variations: processedVariations,
+        stock: values.stock || {},
+        active: true,
+      };
+
       const { data, error } = await supabase
         .from("products")
-        .insert([
-          {
-            name: values.name,
-            description: values.description || null,
-            price: parseFloat(values.price),
-            sku: values.sku,
-            variations: processedVariations,
-            stock: values.stock || {},
-            active: true,
-          },
-        ])
-        .select();
+        .insert([productData])
+        .select()
+        .single();
 
       if (error) {
         console.error("Error creating product:", error);
-        if (error.code === '23505') {
-          throw new Error("SKU já está em uso.");
-        }
         throw error;
       }
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
         title: "Produto criado",
         description: "O produto foi criado com sucesso.",
@@ -194,9 +184,10 @@ const CreateProduct = () => {
               <Button 
                 type="submit" 
                 className="w-full hover:bg-primary/90 transition-colors"
+                disabled={createProduct.isPending}
               >
                 <Package className="h-4 w-4 mr-2" />
-                Criar Produto
+                {createProduct.isPending ? "Criando..." : "Criar Produto"}
               </Button>
             </form>
           </Form>
