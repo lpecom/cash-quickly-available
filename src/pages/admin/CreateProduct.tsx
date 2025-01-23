@@ -61,7 +61,7 @@ const CreateProduct = () => {
       description: "",
       sku: "",
       price: "",
-      variations: [] as ProductVariation[],
+      variations: [],
       stock: {},
     },
   });
@@ -171,12 +171,8 @@ const CreateProduct = () => {
   });
 
   const addVariation = () => {
-    const currentVariations = form.getValues("variations") || [];
-    const newVariation: ProductVariation = { 
-      name: "", 
-      options: "" 
-    };
-    form.setValue("variations", [...currentVariations, newVariation], {
+    const currentVariations = form.getValues("variations");
+    form.setValue("variations", [...currentVariations, { name: "", options: "" }], {
       shouldValidate: true
     });
   };
