@@ -4,29 +4,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { Order } from "@/types/order";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { OrderDetailsPanel } from "@/components/admin/OrderDetailsPanel";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AdminOrders = () => {
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
-      console.log('Fetching orders...');
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          items:order_items(
+            quantity,
+            product:products(
+              name
+            )
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
-      }
-
-      console.log('Orders fetched:', data);
+      if (error) throw error;
       return data as Order[];
     },
   });
@@ -40,57 +47,67 @@ const AdminOrders = () => {
   }
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-6rem)]">
-      <div className="w-1/3 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">All Orders</h1>
-          <Button variant="outline" className="gap-2">
-            <Filter className="w-4 h-4" />
-            Filters
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Orders</h1>
+        <Link to="/admin/orders/new">
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Order
           </Button>
-        </div>
-
-        <div className="space-y-4 overflow-auto pr-4" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
-          {orders?.map((order) => (
-            <div
-              key={order.id}
-              className={`bg-card rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
-                selectedOrder?.id === order.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => setSelectedOrder(order)}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">Order #{order.id.slice(0, 8)}</h3>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(order.id);
-                      }}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      📋
-                    </button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(order.created_at), "h:mma")} · Today
-                  </p>
-                </div>
-                <OrderStatusBadge status={order.status as Order['status']} />
-              </div>
-
-              <div className="space-y-2">
-                <p className="font-medium">{order.customer_name}</p>
-                <p className="text-sm text-muted-foreground truncate">{order.address}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        </Link>
       </div>
 
-      <div className="flex-1 bg-card rounded-lg p-6">
-        <OrderDetailsPanel order={selectedOrder} />
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {orders?.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell className="font-medium">
+                  {order.id.slice(0, 8)}
+                </TableCell>
+                <TableCell>
+                  {format(new Date(order.created_at), "MMM d, yyyy h:mm a")}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{order.customer_name}</div>
+                    <div className="text-sm text-muted-foreground">{order.phone}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <OrderStatusBadge status={order.status as Order['status']} />
+                </TableCell>
+                <TableCell>R$ {order.total.toFixed(2)}</TableCell>
+                <TableCell>
+                  {order.items?.map((item) => (
+                    <div key={item.id} className="text-sm">
+                      {item.quantity}x {item.product.name}
+                    </div>
+                  ))}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Link to={`/admin/orders/${order.id}`}>
+                    <Button variant="ghost" size="sm">
+                      View
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
