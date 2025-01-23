@@ -11,7 +11,7 @@ import { OrderStatusBadge } from "./OrderStatusBadge";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { orderStatusMap } from "@/types/order";
 
@@ -21,7 +21,14 @@ interface OrderDetailsPanelProps {
 
 export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<Order["status"]>(order?.status || "pending");
+  const [currentStatus, setCurrentStatus] = useState<Order["status"]>("pending");
+
+  // Sync status with order prop when it changes
+  useEffect(() => {
+    if (order?.status) {
+      setCurrentStatus(order.status);
+    }
+  }, [order?.status]);
 
   if (!order) {
     return (
@@ -34,23 +41,35 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
   const handleStatusChange = async (newStatus: Order["status"]) => {
     try {
       setIsUpdating(true);
-      console.log('Updating order status:', { orderId: order.id, newStatus });
+      console.log('Starting status update:', { 
+        orderId: order.id, 
+        currentStatus: currentStatus,
+        newStatus: newStatus 
+      });
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
-        .eq('id', order.id);
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating order status:', error);
         throw error;
       }
 
+      console.log('Status update successful:', data);
       setCurrentStatus(newStatus);
       toast.success(`Status atualizado para ${orderStatusMap[newStatus]}`);
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status do pedido");
+      // Revert status on error
+      setCurrentStatus(order.status);
     } finally {
       setIsUpdating(false);
     }
