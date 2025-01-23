@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -14,23 +14,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Bike, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Bike } from "lucide-react";
 
-const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
+const signupSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  fullName: z.string().min(3, "Nome completo é obrigatório"),
+  phone: z.string().min(10, "Telefone inválido"),
 });
 
-const DriverSignup = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+type SignupForm = z.infer<typeof signupSchema>;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+const DriverSignup = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const form = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -39,57 +40,57 @@ const DriverSignup = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
+  const onSubmit = async (data: SignupForm) => {
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
         options: {
           data: {
-            full_name: values.fullName,
+            full_name: data.fullName,
           },
         },
       });
-      
-      if (signUpError) throw signUpError;
 
-      toast.success("Account created successfully! Please check your email.");
+      if (error) throw error;
+
+      toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
       navigate("/auth");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      console.error("Error signing up:", error);
+      toast.error("Erro ao criar conta. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary to-accent flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-6 space-y-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5 animate-pulse rounded-lg" />
-        
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8 relative">
         <Button
           variant="ghost"
-          className="absolute top-4 left-4"
+          className="absolute -top-16 left-0"
           onClick={() => navigate("/auth")}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
         </Button>
 
-        <div className="relative">
-          <div className="flex items-center gap-3 justify-center mb-6">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Bike className="h-8 w-8 text-primary" />
-            </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">Become a Driver</h1>
-              <p className="text-muted-foreground text-sm mt-1">
-                Join our delivery team today
-              </p>
-            </div>
+        <div className="text-center space-y-2">
+          <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Bike className="w-6 h-6 text-primary" />
           </div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Seja um Entregador Parceiro
+          </h1>
+          <p className="text-muted-foreground">
+            Cadastre-se para começar a fazer entregas
+          </p>
+        </div>
 
+        <div className="bg-card border rounded-lg shadow-sm p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -97,9 +98,23 @@ const DriverSignup = () => {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <Input placeholder="João da Silva" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(11) 99999-9999" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -113,21 +128,7 @@ const DriverSignup = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input type="tel" placeholder="(555) 123-4567" {...field} />
+                      <Input placeholder="joao@exemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,39 +140,22 @@ const DriverSignup = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••" {...field} />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button
-                type="submit"
-                className="w-full relative overflow-hidden group"
-                disabled={isLoading}
-              >
-                <span className="relative z-10">
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </span>
-                <div className="absolute inset-0 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Criando conta..." : "Criar conta"}
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <Button
-              variant="link"
-              onClick={() => navigate("/auth")}
-              className="text-sm"
-            >
-              Already have an account? Sign in
-            </Button>
-          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
