@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +43,7 @@ const MotoboyDashboard = () => {
   });
 
   // Get current location for navigation
-  useState(() => {
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
