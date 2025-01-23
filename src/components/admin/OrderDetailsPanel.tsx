@@ -8,7 +8,6 @@ import { Button } from "../ui/button";
 import { Download, Package, Clock, MapPin, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderStatusBadge } from "./OrderStatusBadge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface OrderDetailsPanelProps {
   order: Order | null;
@@ -22,6 +21,44 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
       </div>
     );
   }
+
+  const timelineEvents = [
+    {
+      id: '1',
+      type: "status_change" as const,
+      timestamp: new Date(order.created_at),
+      description: 'Order created',
+      status: 'pending' as const
+    },
+    ...(order.accepted_at ? [{
+      id: '2',
+      type: "status_change" as const,
+      timestamp: new Date(order.accepted_at),
+      description: 'Order accepted by driver',
+      status: 'confirmed' as const
+    }] : []),
+    ...(order.delivery_started_at ? [{
+      id: '3',
+      type: "status_change" as const,
+      timestamp: new Date(order.delivery_started_at),
+      description: 'Delivery started',
+      status: 'on_route' as const
+    }] : []),
+    ...(order.delivery_completed_at ? [{
+      id: '4',
+      type: "status_change" as const,
+      timestamp: new Date(order.delivery_completed_at),
+      description: 'Delivery completed',
+      status: 'delivered' as const
+    }] : []),
+    ...(order.delivery_failure_reason ? [{
+      id: '5',
+      type: "status_change" as const,
+      timestamp: new Date(),
+      description: `Delivery failed: ${order.delivery_failure_reason}`,
+      status: 'not_delivered' as const
+    }] : [])
+  ];
 
   return (
     <div className="space-y-6">
@@ -94,43 +131,7 @@ export const OrderDetailsPanel = ({ order }: OrderDetailsPanelProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <OrderTimeline events={[
-                {
-                  id: '1',
-                  type: 'status_change',
-                  timestamp: new Date(order.created_at),
-                  description: 'Order created',
-                  status: 'pending'
-                },
-                {
-                  id: '2',
-                  type: 'status_change',
-                  timestamp: new Date(order.accepted_at || ''),
-                  description: 'Order accepted by driver',
-                  status: 'confirmed'
-                },
-                ...(order.delivery_started_at ? [{
-                  id: '3',
-                  type: 'status_change',
-                  timestamp: new Date(order.delivery_started_at),
-                  description: 'Delivery started',
-                  status: 'on_route'
-                }] : []),
-                ...(order.delivery_completed_at ? [{
-                  id: '4',
-                  type: 'status_change',
-                  timestamp: new Date(order.delivery_completed_at),
-                  description: 'Delivery completed',
-                  status: 'delivered'
-                }] : []),
-                ...(order.delivery_failure_reason ? [{
-                  id: '5',
-                  type: 'status_change',
-                  timestamp: new Date(),
-                  description: `Delivery failed: ${order.delivery_failure_reason}`,
-                  status: 'not_delivered'
-                }] : [])
-              ]} />
+              <OrderTimeline events={timelineEvents} />
             </CardContent>
           </Card>
         </div>

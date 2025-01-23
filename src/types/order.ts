@@ -45,13 +45,17 @@ export interface Order {
   customer_name: string;
   customer_id: string | null;
   address: string;
-  status: string;
+  status: OrderStatus;
   total: number;
   phone: string;
   delivery_instructions: string | null;
   driver_id: string | null;
   created_at: string;
   updated_at: string;
+  accepted_at: string | null;
+  delivery_started_at: string | null;
+  delivery_completed_at: string | null;
+  delivery_failure_reason: string | null;
   items?: OrderItem[];
 }
 
