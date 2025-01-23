@@ -43,11 +43,12 @@ const MotoboySales = () => {
 
   const handleAcceptOrder = async (orderId: string) => {
     try {
+      const user = await supabase.auth.getUser();
       const { error } = await supabase
         .from("orders")
         .update({ 
           status: "on_route",
-          driver_id: (await supabase.auth.getUser()).data.user?.id 
+          driver_id: user.data.user?.id 
         })
         .eq("id", orderId)
         .eq("status", "confirmed")

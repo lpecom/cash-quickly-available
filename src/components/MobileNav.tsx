@@ -13,7 +13,7 @@ const MobileNav = () => {
             location.pathname === "/motoboy" ? "text-primary" : "text-gray-500"
           }`}
         >
-          <Home className="w-6 h-6" />
+          <ShoppingCart className="w-6 h-6" />
           <span className="text-xs mt-1">Entregas</span>
         </Link>
         <Link
@@ -40,8 +40,8 @@ const MobileNav = () => {
             location.pathname === "/motoboy/sales" ? "text-primary" : "text-gray-500"
           }`}
         >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="text-xs mt-1">Vendas</span>
+          <Home className="w-6 h-6" />
+          <span className="text-xs mt-1">Pedidos</span>
         </Link>
       </div>
     </div>
