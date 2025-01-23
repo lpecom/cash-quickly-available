@@ -6,20 +6,23 @@ import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Order } from "@/types/order";
 
-interface Order {
-  id: string;
-  customer_name: string;
-  address: string;
-  phone: string;
-  status: string;
-  total: number;
-  delivery_instructions?: string;
-}
+// Define the fetchOrders function
+const fetchOrders = async (): Promise<Order[]> => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("status", "confirmed")
+    .is("driver_id", null);
+
+  if (error) throw error;
+  return data || [];
+};
 
 const MotoboySales = () => {
   const queryClient = useQueryClient();
-  const { data: orders = [], isLoading, error } = useQuery({
+  const { data: orders = [], isLoading, error } = useQuery<Order[]>({
     queryKey: ["confirmed-orders"],
     queryFn: fetchOrders,
     refetchInterval: 5000, // Refresh every 5 seconds to get new orders
