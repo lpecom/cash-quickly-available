@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProductFormValues, productSchema, ProductVariation } from "@/types/product";
 import { CreateProductHeader } from "@/components/admin/products/CreateProductHeader";
 import { BasicProductInfo } from "@/components/admin/products/BasicProductInfo";
@@ -24,6 +24,7 @@ const CreateProduct = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const queryClient = useQueryClient();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -80,6 +81,7 @@ const CreateProduct = () => {
 
   const createProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
+      console.log("Creating product with values:", values);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user?.id) {
@@ -112,9 +114,11 @@ const CreateProduct = () => {
         throw error;
       }
 
+      console.log("Product created successfully:", data);
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
         title: "Produto criado",
         description: "O produto foi criado com sucesso.",
@@ -145,6 +149,7 @@ const CreateProduct = () => {
   };
 
   const onSubmit = async (values: ProductFormValues) => {
+    console.log("Form submitted with values:", values);
     try {
       await createProduct.mutateAsync(values);
     } catch (error) {

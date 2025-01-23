@@ -26,6 +26,7 @@ const AdminProducts = () => {
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
+      console.log("Fetching products...");
       const { data, error } = await supabase
         .from("products")
         .select("*")
@@ -41,6 +42,7 @@ const AdminProducts = () => {
         throw error;
       }
 
+      console.log("Products fetched:", data);
       return data as Product[];
     },
   });
