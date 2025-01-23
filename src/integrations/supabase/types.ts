@@ -250,27 +250,54 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          city: string | null
+          cnh_expiration: string | null
+          cnh_number: string | null
           created_at: string
           full_name: string | null
           id: string
+          motorcycle_model: string | null
+          motorcycle_plate: string | null
+          motorcycle_year: number | null
           phone: string | null
+          postal_code: string | null
           role: Database["public"]["Enums"]["user_role"]
+          state: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          city?: string | null
+          cnh_expiration?: string | null
+          cnh_number?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          motorcycle_model?: string | null
+          motorcycle_plate?: string | null
+          motorcycle_year?: number | null
           phone?: string | null
+          postal_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          city?: string | null
+          cnh_expiration?: string | null
+          cnh_number?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          motorcycle_model?: string | null
+          motorcycle_plate?: string | null
+          motorcycle_year?: number | null
           phone?: string | null
+          postal_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           updated_at?: string
         }
         Relationships: []

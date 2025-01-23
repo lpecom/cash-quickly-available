@@ -19,6 +19,7 @@ import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
 import Index from "./pages/Index";
 import AdminAuthPage from "./pages/auth/AdminAuthPage";
 import MotoboyAuthPage from "./pages/auth/MotoboyAuthPage";
+import DriverSignup from "./pages/auth/DriverSignup";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import { Toaster } from "sonner";
@@ -33,6 +34,7 @@ function App() {
         {/* Auth Routes */}
         <Route path="/auth/admin" element={<AdminAuthPage />} />
         <Route path="/auth/motoboy" element={<MotoboyAuthPage />} />
+        <Route path="/driver-signup" element={<DriverSignup />} />
 
         {/* Checkout Routes */}
         <Route path="/produto/:productId/checkout" element={<Checkout />} />
