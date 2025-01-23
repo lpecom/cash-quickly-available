@@ -8,6 +8,7 @@ import { addDays, format, startOfDay, endOfDay, subDays } from "date-fns";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardOrderList } from "@/components/admin/DashboardOrderList";
 
 const AdminDashboard: React.FC = () => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
@@ -15,7 +16,7 @@ const AdminDashboard: React.FC = () => {
     to: new Date(),
   });
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-dashboard-stats', dateRange],
     queryFn: async () => {
       const startDate = dateRange?.from ? startOfDay(dateRange.from) : startOfDay(new Date());
@@ -66,7 +67,29 @@ const AdminDashboard: React.FC = () => {
     },
   });
 
-  if (isLoading) {
+  const { data: orders, isLoading: ordersLoading } = useQuery({
+    queryKey: ['admin-dashboard-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          items:order_items(
+            quantity,
+            product:products(
+              name
+            )
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (statsLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -175,14 +198,18 @@ const AdminDashboard: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="amount"
-                stroke="#1A5D52"
-                fill="#1A5D52"
+                stroke="#8B5CF6"
+                fill="#8B5CF6"
                 fillOpacity={0.1}
               />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {!ordersLoading && orders && (
+        <DashboardOrderList orders={orders} />
+      )}
     </div>
   );
 };
