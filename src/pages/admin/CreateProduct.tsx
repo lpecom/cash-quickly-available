@@ -41,20 +41,28 @@ const CreateProduct = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Check if user is admin on component mount
   useEffect(() => {
     const checkAdminAccess = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const role = session?.user?.user_metadata?.role;
-      
-      if (!session || (role !== 'admin' && role !== 'superadmin')) {
-        toast({
-          title: "Acesso negado",
-          description: "Você não tem permissão para criar produtos.",
-          variant: "destructive",
-        });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const role = session?.user?.user_metadata?.role;
+        
+        if (!session || (role !== 'admin' && role !== 'superadmin')) {
+          toast({
+            title: "Acesso negado",
+            description: "Você não tem permissão para criar produtos.",
+            variant: "destructive",
+          });
+          navigate("/admin/products");
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
         navigate("/admin/products");
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
 
@@ -123,6 +131,10 @@ const CreateProduct = () => {
       setIsLoading(false);
     }
   };
+
+  if (isCheckingAuth) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
