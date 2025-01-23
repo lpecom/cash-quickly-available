@@ -15,7 +15,7 @@ import { DateRange } from "react-day-picker";
 const AdminOrders = () => {
   const [filters, setFilters] = useState<{
     dateRange?: DateRange;
-    status?: string;
+    status?: Order["status"] | "all";
     search?: string;
   }>({});
 
@@ -66,7 +66,12 @@ const AdminOrders = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data;
+      
+      // Ensure the status is of type OrderStatus
+      return (data || []).map(order => ({
+        ...order,
+        status: order.status as Order["status"]
+      }));
     },
   });
 

@@ -15,7 +15,12 @@ const fetchOrders = async (): Promise<Order[]> => {
     .is("driver_id", null);
 
   if (error) throw error;
-  return data || [];
+  
+  // Ensure the status is of type OrderStatus
+  return (data || []).map(order => ({
+    ...order,
+    status: order.status as Order["status"]
+  }));
 };
 
 const MotoboySales = () => {

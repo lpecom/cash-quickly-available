@@ -56,6 +56,7 @@ export interface Order {
   delivery_started_at: string | null;
   delivery_completed_at: string | null;
   delivery_failure_reason: string | null;
+  commission: number | null;
   items?: OrderItem[];
 }
 
