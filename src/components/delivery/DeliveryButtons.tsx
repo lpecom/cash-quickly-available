@@ -39,6 +39,7 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (acceptedAt) {
@@ -62,6 +63,9 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
 
   const handleDeliverySuccess = async () => {
     try {
+      setIsUpdating(true);
+      console.log('Updating order status to delivered:', orderId);
+
       const { error } = await supabase
         .from('orders')
         .update({
@@ -70,11 +74,19 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
         })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating order:', error);
+        throw error;
+      }
+
       toast.success("Entrega confirmada com sucesso!");
+      // Redirect to dashboard or refresh orders list
+      window.location.href = '/entregas';
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error("Erro ao confirmar entrega");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -85,6 +97,9 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
     }
 
     try {
+      setIsUpdating(true);
+      console.log('Updating order status to not delivered:', orderId);
+
       const { error } = await supabase
         .from('orders')
         .update({
@@ -94,12 +109,20 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
         })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating order:', error);
+        throw error;
+      }
+
       toast.success("Status atualizado com sucesso");
       setSelectedReason("");
+      // Redirect to dashboard or refresh orders list
+      window.location.href = '/entregas';
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error("Erro ao atualizar status");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -109,12 +132,9 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
   };
 
   const handleOpenMaps = () => {
-    // Offer both Google Maps and Waze options
     const encodedAddress = encodeURIComponent(address);
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
     const wazeUrl = `https://waze.com/ul?q=${encodedAddress}`;
-    
-    // Open a dialog to let the user choose
     setShowConfirmDialog(true);
   };
 
@@ -128,11 +148,11 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <Button onClick={handleContactCustomer} variant="outline">
+        <Button onClick={handleContactCustomer} variant="outline" disabled={isUpdating}>
           <MessageCircle className="w-4 h-4 mr-2" />
           WhatsApp
         </Button>
-        <Button onClick={handleOpenMaps} variant="outline">
+        <Button onClick={handleOpenMaps} variant="outline" disabled={isUpdating}>
           <Navigation className="w-4 h-4 mr-2" />
           Navegação
         </Button>
@@ -140,7 +160,7 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="w-full" variant="default">
+          <Button className="w-full" variant="default" disabled={isUpdating}>
             <CheckCircle className="w-4 h-4 mr-2" />
             Entrega Concluída
           </Button>
@@ -153,8 +173,8 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleDeliverySuccess()}>
-              Confirmar
+            <Button variant="outline" onClick={handleDeliverySuccess} disabled={isUpdating}>
+              {isUpdating ? 'Atualizando...' : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -162,7 +182,7 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="w-full" variant="destructive">
+          <Button className="w-full" variant="destructive" disabled={isUpdating}>
             <XCircle className="w-4 h-4 mr-2" />
             Não Foi Possível Entregar
           </Button>
@@ -187,7 +207,9 @@ export const DeliveryButtons = ({ orderId, phone, address, acceptedAt }: Deliver
             </SelectContent>
           </Select>
           <DialogFooter>
-            <Button onClick={() => handleDeliveryFailure()}>Confirmar</Button>
+            <Button onClick={handleDeliveryFailure} disabled={isUpdating}>
+              {isUpdating ? 'Atualizando...' : 'Confirmar'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
