@@ -9,7 +9,6 @@ import type { User } from "@supabase/supabase-js";
 import Index from "./pages/Index";
 import AuthPage from "./pages/auth/AuthPage";
 import MotoboyDashboard from "./pages/MotoboyDashboard";
-import MotoboyDashboardStats from "./pages/MotoboyDashboardStats";
 import MotoboyPayments from "./pages/MotoboyPayments";
 import MotoboySales from "./pages/MotoboySales";
 import OrderDetails from "./pages/OrderDetails";
@@ -115,14 +114,6 @@ const App = () => (
             element={
               <ProtectedRoute requiredRole="motoboy">
                 <MotoboyDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/motoboy/dashboard"
-            element={
-              <ProtectedRoute requiredRole="motoboy">
-                <MotoboyDashboardStats />
               </ProtectedRoute>
             }
           />
