@@ -33,9 +33,16 @@ const AdminOrderDetails = () => {
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<Order["status"]>("pending");
 
+  const isNewOrder = orderId === 'new';
+
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
     queryFn: async () => {
+      // Don't fetch if we're creating a new order
+      if (isNewOrder) {
+        return null;
+      }
+
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
@@ -51,6 +58,7 @@ const AdminOrderDetails = () => {
       if (orderError) throw orderError;
       return orderData as Order;
     },
+    enabled: !isNewOrder, // Only run query if we're not creating a new order
   });
 
   const { data: products } = useQuery({
@@ -66,7 +74,7 @@ const AdminOrderDetails = () => {
     },
   });
 
-  if (isLoading || !order) {
+  if (isLoading && !isNewOrder) {
     return <div>Loading...</div>;
   }
 
@@ -122,6 +130,8 @@ const AdminOrderDetails = () => {
   };
 
   const handleStatusChange = async (newStatus: Order["status"]) => {
+    if (isNewOrder) return;
+
     try {
       const { error } = await supabase
         .from('orders')
@@ -130,7 +140,7 @@ const AdminOrderDetails = () => {
 
       if (error) throw error;
       setStatus(newStatus);
-      toast.success(`Status atualizado para ${orderStatusMap[newStatus as keyof typeof orderStatusMap]}`);
+      toast.success(`Status atualizado para ${orderStatusMap[newStatus]}`);
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Failed to update status");
@@ -145,10 +155,14 @@ const AdminOrderDetails = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Pedido #{orderId}</h1>
-          <p className="text-muted-foreground">
-            Cliente: {order.customer_name}
-          </p>
+          <h1 className="text-3xl font-bold">
+            {isNewOrder ? "Novo Pedido" : `Pedido #${orderId}`}
+          </h1>
+          {!isNewOrder && order && (
+            <p className="text-muted-foreground">
+              Cliente: {order.customer_name}
+            </p>
+          )}
         </div>
         <Button onClick={handleSaveChanges}>
           <Save className="mr-2 h-4 w-4" />
@@ -158,31 +172,33 @@ const AdminOrderDetails = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          <OrderCustomerInfo order={order} />
+          {!isNewOrder && order && <OrderCustomerInfo order={order} />}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Status do Pedido</CardTitle>
-              <CardDescription>Atualize o status do pedido</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={status}
-                onValueChange={(value) => handleStatusChange(value as Order["status"])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(orderStatusMap).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+          {!isNewOrder && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Status do Pedido</CardTitle>
+                <CardDescription>Atualize o status do pedido</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={status}
+                  onValueChange={(value) => handleStatusChange(value as Order["status"])}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(orderStatusMap).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -218,10 +234,12 @@ const AdminOrderDetails = () => {
             </CardContent>
           </Card>
 
-          <OrderProductList 
-            products={order.items || []}
-            onRemoveProduct={handleRemoveProduct}
-          />
+          {!isNewOrder && order && (
+            <OrderProductList 
+              products={order.items || []}
+              onRemoveProduct={handleRemoveProduct}
+            />
+          )}
         </div>
 
         <div className="space-y-6">
@@ -242,24 +260,28 @@ const AdminOrderDetails = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico do Pedido</CardTitle>
-              <CardDescription>Acompanhe todas as atualizações</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrderTimeline events={[]} />
-            </CardContent>
-          </Card>
+          {!isNewOrder && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico do Pedido</CardTitle>
+                <CardDescription>Acompanhe todas as atualizações</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <OrderTimeline events={[]} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <div className="text-right">
-          <p className="text-lg font-semibold">Total do Pedido</p>
-          <p className="text-2xl font-bold">R$ {order.total.toFixed(2)}</p>
+      {!isNewOrder && order && (
+        <div className="flex justify-end">
+          <div className="text-right">
+            <p className="text-lg font-semibold">Total do Pedido</p>
+            <p className="text-2xl font-bold">R$ {order.total.toFixed(2)}</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
