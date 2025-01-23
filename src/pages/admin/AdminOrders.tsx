@@ -25,9 +25,23 @@ const AdminOrders = () => {
         .select(`
           *,
           items:order_items(
+            id,
+            order_id,
+            product_id,
             quantity,
+            price_at_time,
+            created_at,
             product:products(
-              name
+              id,
+              name,
+              price,
+              description,
+              active,
+              created_at,
+              updated_at,
+              sku,
+              variations,
+              stock
             )
           )
         `)
