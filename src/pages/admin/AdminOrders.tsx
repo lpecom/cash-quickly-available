@@ -15,15 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Eye } from "lucide-react";
+import { Plus, Eye, Loader2 } from "lucide-react";
 import { Order, orderStatusMap } from "@/types/order";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const AdminOrders = () => {
   const queryClient = useQueryClient();
+  const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -45,18 +47,23 @@ const AdminOrders = () => {
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
+      // If changing to confirmed, set loading state
+      if (newStatus === 'confirmed') {
+        setLoadingOrderId(orderId);
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ 
           status: newStatus,
-          // Clear driver_id when status changes to confirmed to make it available for motoboys
-          ...(newStatus === 'confirmed' ? { driver_id: null } : {})
+          driver_id: newStatus === 'confirmed' ? null : undefined
         })
         .eq('id', orderId);
 
       if (error) {
         console.error('Error updating order status:', error);
         toast.error('Failed to update order status');
+        setLoadingOrderId(null);
         return;
       }
 
@@ -65,6 +72,10 @@ const AdminOrders = () => {
         toast.success('Order confirmed and available for motoboys');
       } else {
         toast.success('Order status updated successfully');
+        // If changing from confirmed to another status, remove loading state
+        if (loadingOrderId === orderId) {
+          setLoadingOrderId(null);
+        }
       }
 
       // Refresh orders data
@@ -72,6 +83,7 @@ const AdminOrders = () => {
     } catch (error) {
       console.error('Error in handleStatusChange:', error);
       toast.error('An unexpected error occurred');
+      setLoadingOrderId(null);
     }
   };
 
@@ -121,7 +133,7 @@ const AdminOrders = () => {
           </TableHeader>
           <TableBody>
             {orders?.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} className={loadingOrderId === order.id ? "animate-pulse" : ""}>
                 <TableCell>#{order.id.slice(0, 8)}</TableCell>
                 <TableCell>{order.customer_name}</TableCell>
                 <TableCell>{order.address}</TableCell>
@@ -129,12 +141,22 @@ const AdminOrders = () => {
                   <Select 
                     defaultValue={order.status}
                     onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
+                    disabled={loadingOrderId === order.id}
                   >
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-[180px]">
                       <SelectValue>
-                        <Badge className={getStatusColor(order.status)}>
-                          {orderStatusMap[order.status]}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {loadingOrderId === order.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Procurando motoboy...</span>
+                            </>
+                          ) : (
+                            <Badge className={getStatusColor(order.status)}>
+                              {orderStatusMap[order.status]}
+                            </Badge>
+                          )}
+                        </div>
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
