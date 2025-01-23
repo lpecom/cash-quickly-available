@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { DateRange } from "react-day-picker";
+import { Order } from "@/types/order";
 
 const AdminOrders = () => {
   const [filters, setFilters] = useState<{

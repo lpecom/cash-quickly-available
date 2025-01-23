@@ -1,18 +1,18 @@
 import { z } from "zod";
 
+export interface ProductVariation {
+  name: string;
+  options: string;
+}
+
 export interface ProductFormValues {
   name: string;
   description: string;
-  price: string; // Changed from number to string to match form input
+  price: string;
   sku: string;
   supplier_id?: string;
   variations: ProductVariation[];
-  stock: Record<string, string>; // Added stock field
-}
-
-export interface ProductVariation {
-  name: string;
-  options: string; // Changed to string since we handle comma-separated values
+  stock: Record<string, string>;
 }
 
 export const productSchema = z.object({
