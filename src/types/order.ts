@@ -31,21 +31,14 @@ export interface OrderProduct {
 
 export interface Order {
   id: string;
-  customer: string;
+  customer_name: string;
+  customer_id?: string;
   address: string;
   status: OrderStatus;
   total: number;
-  phone: string; // Added phone property
-  products: OrderProduct[];
-  createdAt: string;
-  driverId?: string;
-}
-
-export interface TimelineEvent {
-  id: string;
-  type: "status_change" | "call" | "message";
-  timestamp: Date;
-  description: string;
-  status?: OrderStatus;
-  agent?: string;
+  phone: string;
+  delivery_instructions?: string;
+  driver_id?: string;
+  created_at: string;
+  updated_at: string;
 }
