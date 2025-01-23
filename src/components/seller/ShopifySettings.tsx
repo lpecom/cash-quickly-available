@@ -9,8 +9,15 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface ShopifySettings {
-  store_name: string;
-  location_id: string;
+  store_name?: string;
+  location_id?: string;
+}
+
+interface SellerProfile {
+  id: string;
+  user_id: string;
+  shopify_enabled: boolean;
+  shopify_settings: ShopifySettings;
 }
 
 interface ShopifySettingsFormValues {
@@ -34,16 +41,16 @@ export function ShopifySettings() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as SellerProfile;
     }
   });
 
   const form = useForm<ShopifySettingsFormValues>({
     defaultValues: {
       shopify_enabled: sellerProfile?.shopify_enabled ?? false,
-      shopify_settings: (sellerProfile?.shopify_settings as ShopifySettings) ?? {
-        store_name: '',
-        location_id: '',
+      shopify_settings: {
+        store_name: (sellerProfile?.shopify_settings as ShopifySettings)?.store_name ?? '',
+        location_id: (sellerProfile?.shopify_settings as ShopifySettings)?.location_id ?? '',
       },
     },
   });
@@ -57,7 +64,7 @@ export function ShopifySettings() {
         .from('seller_profiles')
         .update({
           shopify_enabled: values.shopify_enabled,
-          shopify_settings: values.shopify_settings,
+          shopify_settings: values.shopify_settings as unknown as Json,
         })
         .eq('user_id', user.id);
 
