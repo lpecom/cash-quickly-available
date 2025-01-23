@@ -6,12 +6,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
+
+type NotificationType = "email" | "push" | "sms";
+type EventType = "order_created" | "order_accepted" | "order_delivered" | "order_cancelled";
 
 interface NotificationPreferences {
-  order_created: string[];
-  order_accepted: string[];
-  order_delivered: string[];
-  order_cancelled: string[];
+  [key in EventType]: NotificationType[];
 }
 
 interface FormValues {
@@ -24,18 +25,18 @@ interface NotificationSettingsProps {
   };
 }
 
-const notificationTypes = [
+const notificationTypes: Array<{ id: NotificationType; label: string }> = [
   { id: "email", label: "Email" },
   { id: "push", label: "Push Notifications" },
   { id: "sms", label: "SMS" },
-] as const;
+];
 
-const events = [
+const events: Array<{ id: EventType; label: string }> = [
   { id: "order_created", label: "Order Created" },
   { id: "order_accepted", label: "Order Accepted" },
   { id: "order_delivered", label: "Order Delivered" },
   { id: "order_cancelled", label: "Order Cancelled" },
-] as const;
+];
 
 export function NotificationSettings({ config }: NotificationSettingsProps) {
   const queryClient = useQueryClient();
@@ -54,7 +55,7 @@ export function NotificationSettings({ config }: NotificationSettingsProps) {
     mutationFn: async (values: FormValues) => {
       const { error } = await supabase
         .from('configurations')
-        .update({ value: values.preferences })
+        .update({ value: values.preferences as Json })
         .eq('category', 'notifications')
         .eq('key', 'preferences');
 
@@ -89,7 +90,7 @@ export function NotificationSettings({ config }: NotificationSettingsProps) {
               <FormField
                 key={event.id}
                 control={form.control}
-                name={`preferences.${event.id}` as keyof FormValues}
+                name={`preferences.${event.id}`}
                 render={({ field }) => (
                   <FormItem className="space-y-4">
                     <FormLabel>{event.label}</FormLabel>
@@ -98,9 +99,9 @@ export function NotificationSettings({ config }: NotificationSettingsProps) {
                         <FormField
                           key={type.id}
                           control={form.control}
-                          name={`preferences.${event.id}` as keyof FormValues}
-                          render={({ field: { value, onChange } }) => {
-                            const values = value as string[];
+                          name={`preferences.${event.id}`}
+                          render={({ field }) => {
+                            const values = field.value as NotificationType[];
                             return (
                               <FormItem
                                 key={type.id}
@@ -113,7 +114,7 @@ export function NotificationSettings({ config }: NotificationSettingsProps) {
                                       const updatedValue = checked
                                         ? [...values, type.id]
                                         : values.filter((value) => value !== type.id);
-                                      onChange(updatedValue);
+                                      field.onChange(updatedValue);
                                     }}
                                   />
                                 </FormControl>
