@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { LogOut, User, Phone, Save } from "lucide-react";
 import { toast } from "sonner";
 import MobileNav from "@/components/MobileNav";
+import { ProfileTierCard } from "@/components/ProfileTierCard";
 
 const MotoboyProfile = () => {
   const navigate = useNavigate();
@@ -33,6 +34,22 @@ const MotoboyProfile = () => {
       setPhone(data.phone || "");
 
       return data;
+    }
+  });
+
+  const { data: metrics } = useQuery({
+    queryKey: ["driver_metrics"],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not found");
+
+      const { data, error } = await supabase
+        .rpc('get_driver_metrics', {
+          driver_uuid: user.user.id
+        });
+
+      if (error) throw error;
+      return data[0];
     }
   });
 
@@ -80,6 +97,12 @@ const MotoboyProfile = () => {
             Gerencie suas informações pessoais
           </p>
         </div>
+
+        {metrics && (
+          <div className="mb-6">
+            <ProfileTierCard totalDeliveries={metrics.total_deliveries} />
+          </div>
+        )}
 
         <Card className="p-6">
           <div className="space-y-4">
