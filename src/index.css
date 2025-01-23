@@ -6,13 +6,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 220 33% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 142 76% 45%;
+    --primary: 252 89% 74%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -24,7 +24,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 142 76% 45%;
+    --ring: 252 89% 74%;
     --radius: 0.75rem;
   }
 
@@ -34,5 +34,20 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    background-image: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+    background-attachment: fixed;
+  }
+
+  /* Glass effect utilities */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg;
+  }
+
+  .glass-card {
+    @apply bg-card backdrop-blur-sm border border-white/20 shadow-lg;
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/90 transition-colors duration-200;
   }
 }

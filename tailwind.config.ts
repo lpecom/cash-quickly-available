@@ -25,7 +25,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#22C55E",
+          DEFAULT: "#9b87f5",
           foreground: "#FFFFFF",
         },
         secondary: {
@@ -45,7 +45,7 @@ export default {
           foreground: "#0F172A",
         },
         card: {
-          DEFAULT: "#FFFFFF",
+          DEFAULT: "rgba(255, 255, 255, 0.8)",
           foreground: "#1E293B",
         },
       },
@@ -65,6 +65,9 @@ export default {
       },
       animation: {
         "border": "border-animate 3s linear infinite",
+      },
+      backdropBlur: {
+        xs: '2px',
       }
     },
   },
