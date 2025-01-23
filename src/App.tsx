@@ -16,12 +16,18 @@ import CreateOrder from "./pages/admin/CreateOrder";
 import CreateProduct from "./pages/admin/CreateProduct";
 import AdminProductDetails from "./pages/admin/AdminProductDetails";
 import AdminDriverDetails from "./pages/admin/AdminDriverDetails";
+import Index from "./pages/Index";
+import AuthPage from "./pages/auth/AuthPage";
 import { Toaster } from "sonner";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<AuthPage />} />
+
         {/* Motoboy Routes */}
         <Route path="/entregas" element={<MotoboyDashboard />} />
         <Route path="/coletas" element={<MotoboyCollections />} />
