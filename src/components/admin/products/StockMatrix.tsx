@@ -3,16 +3,17 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProductFormValues, ProductVariation } from "@/types/product";
 
 interface StockMatrixProps {
-  form: UseFormReturn<any>;
-  variations: Array<{ name: string; options: string }>;
+  form: UseFormReturn<ProductFormValues>;
+  variations: ProductVariation[];
 }
 
 export const StockMatrix = ({ form, variations }: StockMatrixProps) => {
   if (!variations.length) return null;
 
-  const generateCombinations = (variations: Array<{ name: string; options: string }>) => {
+  const generateCombinations = (variations: ProductVariation[]) => {
     const options = variations.map(v => v.options.split(',').map(o => o.trim()));
     const combinations = options.reduce((acc, curr) => {
       if (!acc.length) return curr.map(item => [item]);

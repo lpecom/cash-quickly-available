@@ -2,11 +2,12 @@ import React from 'react';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
+import { Minus } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+import { ProductFormValues } from "@/types/product";
 
 interface VariationFieldProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<ProductFormValues>;
   index: number;
   onRemove: () => void;
 }

@@ -3,7 +3,7 @@ import { FormLabel } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { ProductFormValues } from "@/types/product";
+import { ProductFormValues, ProductVariation } from "@/types/product";
 import { VariationField } from "./VariationField";
 import { StockMatrix } from "./StockMatrix";
 
@@ -14,6 +14,8 @@ interface ProductVariationsProps {
 }
 
 export const ProductVariations = ({ form, onAddVariation, onRemoveVariation }: ProductVariationsProps) => {
+  const variations = form.watch("variations") as ProductVariation[];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -31,7 +33,7 @@ export const ProductVariations = ({ form, onAddVariation, onRemoveVariation }: P
       </div>
 
       <div className="space-y-4">
-        {form.watch("variations").map((_, index) => (
+        {variations.map((_, index) => (
           <VariationField
             key={index}
             form={form}
@@ -43,7 +45,7 @@ export const ProductVariations = ({ form, onAddVariation, onRemoveVariation }: P
 
       <StockMatrix
         form={form}
-        variations={form.watch("variations")}
+        variations={variations}
       />
     </div>
   );
