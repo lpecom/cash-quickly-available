@@ -34,6 +34,7 @@ const SellerCatalog = () => {
           description,
           price,
           supplier:supplier_id (
+            id,
             name
           ),
           created_at
@@ -91,7 +92,7 @@ const SellerCatalog = () => {
           product.description?.toLowerCase().includes(filters.search.toLowerCase());
         
         const matchesSupplier = filters.supplier === "all" || 
-          product.supplier_id === filters.supplier;
+          product.supplier?.id === filters.supplier;
         
         const matchesPrice = product.price >= filters.priceRange[0] && 
           product.price <= filters.priceRange[1];
