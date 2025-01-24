@@ -1,17 +1,20 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Search, RefreshCw } from "lucide-react";
+import { Package, Search, Link, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export default function SellerProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("my-products");
+  const [linkingProductId, setLinkingProductId] = useState<string | null>(null);
+  const [catalogSearchTerm, setCatalogSearchTerm] = useState("");
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["seller-products"],
@@ -26,6 +29,73 @@ export default function SellerProducts() {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: catalogProducts } = useQuery({
+    queryKey: ["catalog-products"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .is("seller_id", null)
+        .eq("active", true);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const linkMutation = useMutation({
+    mutationFn: async (catalogProductId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: sellerProfile } = await supabase
+        .from("seller_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!sellerProfile) throw new Error("Seller profile not found");
+
+      // Get the source product
+      const { data: sourceProduct } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", catalogProductId)
+        .single();
+
+      if (!sourceProduct) throw new Error("Product not found");
+
+      // Create the linked product
+      const { data: newProduct, error: insertError } = await supabase
+        .from("products")
+        .insert({
+          name: sourceProduct.name,
+          description: sourceProduct.description,
+          price: sourceProduct.price,
+          sku: sourceProduct.sku,
+          variations: sourceProduct.variations,
+          stock: sourceProduct.stock,
+          supplier_id: sourceProduct.supplier_id,
+          seller_id: sellerProfile.id,
+          linked_product_id: catalogProductId,
+          active: true
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      return newProduct;
+    },
+    onSuccess: () => {
+      toast.success("Produto vinculado com sucesso!");
+      setLinkingProductId(null);
+    },
+    onError: (error: Error) => {
+      console.error("Error linking product:", error);
+      toast.error("Erro ao vincular produto. Por favor, tente novamente.");
     },
   });
 
@@ -53,6 +123,10 @@ export default function SellerProducts() {
 
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredCatalogProducts = catalogProducts?.filter((product) =>
+    product.name.toLowerCase().includes(catalogSearchTerm.toLowerCase())
   );
 
   return (
@@ -168,9 +242,18 @@ export default function SellerProducts() {
                         <CardTitle className="text-base line-clamp-1">
                           {product.name}
                         </CardTitle>
-                        <Badge variant={product.active ? "default" : "secondary"}>
-                          {product.active ? "Ativo" : "Inativo"}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setLinkingProductId(product.id)}
+                          >
+                            <Link className="h-4 w-4" />
+                          </Button>
+                          <Badge variant={product.active ? "default" : "secondary"}>
+                            {product.active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {product.description}
@@ -192,6 +275,52 @@ export default function SellerProducts() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!linkingProductId} onOpenChange={() => setLinkingProductId(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Vincular Produto do Catálogo</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar no catálogo..."
+              className="pl-8"
+              value={catalogSearchTerm}
+              onChange={(e) => setCatalogSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+            {filteredCatalogProducts?.map((product) => (
+              <Card key={product.id} className="overflow-hidden">
+                <CardHeader className="space-y-2">
+                  <CardTitle className="text-base line-clamp-1">
+                    {product.name}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {product.description}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">
+                      R$ {product.price.toFixed(2)}
+                    </span>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => linkMutation.mutate(product.id)}
+                      disabled={linkMutation.isPending}
+                    >
+                      {linkMutation.isPending ? "Vinculando..." : "Vincular"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
