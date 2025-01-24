@@ -1,17 +1,20 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Search, RefreshCw } from "lucide-react";
+import { Package, Search, RefreshCw, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { ProductLinkDialog } from "@/components/seller/ProductLinkDialog";
 
 export default function SellerProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("my-products");
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["seller-products"],
@@ -19,9 +22,27 @@ export default function SellerProducts() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const { data: sellerProfile } = await supabase
+        .from("seller_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!sellerProfile) throw new Error("Seller profile not found");
+
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          linked_product:products!products_linked_product_id_fkey (
+            id,
+            name,
+            description,
+            price,
+            sku
+          )
+        `)
+        .eq("seller_id", sellerProfile.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -54,6 +75,11 @@ export default function SellerProducts() {
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleLinkProduct = (product: any) => {
+    setSelectedProduct(product);
+    setIsLinkDialogOpen(true);
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -130,13 +156,25 @@ export default function SellerProducts() {
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">
-                        R$ {product.price.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        SKU: {product.sku || "N/A"}
-                      </span>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">
+                          R$ {product.price.toFixed(2)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          SKU: {product.sku || "N/A"}
+                        </span>
+                      </div>
+                      {product.shopify_id && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleLinkProduct(product)}
+                        >
+                          <Link2 className="h-4 w-4 mr-2" />
+                          {product.linked_product ? "Produto Vinculado" : "Vincular Produto"}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -177,13 +215,23 @@ export default function SellerProducts() {
                       </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          R$ {product.price.toFixed(2)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          SKU: {product.sku || "N/A"}
-                        </span>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            R$ {product.price.toFixed(2)}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            SKU: {product.sku || "N/A"}
+                          </span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleLinkProduct(product)}
+                        >
+                          <Link2 className="h-4 w-4 mr-2" />
+                          {product.linked_product ? "Produto Vinculado" : "Vincular Produto"}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -192,6 +240,14 @@ export default function SellerProducts() {
           )}
         </TabsContent>
       </Tabs>
+
+      {selectedProduct && (
+        <ProductLinkDialog
+          open={isLinkDialogOpen}
+          onOpenChange={setIsLinkDialogOpen}
+          shopifyProduct={selectedProduct}
+        />
+      )}
     </div>
   );
 }
