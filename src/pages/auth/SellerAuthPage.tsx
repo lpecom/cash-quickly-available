@@ -46,6 +46,7 @@ const SellerAuthPage = () => {
       setIsLoading(true);
       
       if (isSignUp) {
+        console.log('Attempting to sign up:', data.email);
         const { error: signUpError } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
@@ -58,7 +59,10 @@ const SellerAuthPage = () => {
           }
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          console.error('Signup error:', signUpError);
+          throw signUpError;
+        }
         toast.success("Cadastro realizado com sucesso!");
       } else {
         console.log('Attempting to sign in:', data.email);
@@ -67,7 +71,17 @@ const SellerAuthPage = () => {
           password: data.password,
         });
 
-        if (signInError) throw signInError;
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw signInError;
+        }
+
+        if (!signInData.user) {
+          console.error('No user data returned');
+          throw new Error("Erro ao obter dados do usuário");
+        }
+
+        console.log('User signed in:', signInData.user.id);
 
         // Verify if the user has a seller profile
         const { data: profile, error: profileError } = await supabase
@@ -76,9 +90,15 @@ const SellerAuthPage = () => {
           .eq('id', signInData.user.id)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          throw profileError;
+        }
 
-        if (profile.role !== 'seller') {
+        console.log('User profile:', profile);
+
+        if (!profile || profile.role !== 'seller') {
+          console.error('Invalid role:', profile?.role);
           await supabase.auth.signOut();
           throw new Error("Esta conta não tem permissão de vendedor");
         }
