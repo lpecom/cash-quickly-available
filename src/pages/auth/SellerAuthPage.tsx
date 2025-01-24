@@ -44,11 +44,9 @@ const SellerAuthPage = () => {
   const onSubmit = async (data: AuthForm) => {
     try {
       setIsLoading(true);
-      toast.info("Processando...");
       
       if (isSignUp) {
-        console.log('Attempting to sign up:', data.email);
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
@@ -60,60 +58,19 @@ const SellerAuthPage = () => {
           }
         });
 
-        if (signUpError) {
-          console.error('Signup error:', signUpError);
-          toast.error(signUpError.message);
-          return;
-        }
+        if (error) throw error;
         toast.success("Cadastro realizado com sucesso!");
       } else {
-        console.log('Attempting to sign in:', data.email);
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
-        if (signInError) {
-          console.error('Sign in error:', signInError);
-          toast.error(signInError.message);
-          return;
-        }
-
-        if (!signInData.user) {
-          console.error('No user data returned');
-          toast.error("Erro ao obter dados do usuário");
-          return;
-        }
-
-        console.log('User signed in:', signInData.user.id);
-
-        // Verify if the user has a seller profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', signInData.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-          toast.error("Erro ao verificar perfil do usuário");
-          await supabase.auth.signOut();
-          return;
-        }
-
-        console.log('User profile:', profile);
-
-        if (!profile || profile.role !== 'seller') {
-          console.error('Invalid role:', profile?.role);
-          toast.error("Esta conta não tem permissão de vendedor");
-          await supabase.auth.signOut();
-          return;
-        }
-
-        console.log('Login successful, navigating to /seller');
+        if (error) throw error;
         toast.success("Login realizado com sucesso!");
-        navigate("/seller");
       }
+
+      navigate("/seller");
     } catch (error: any) {
       console.error("Error in authentication:", error);
       toast.error(error.message || "Erro na autenticação");

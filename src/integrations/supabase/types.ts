@@ -217,7 +217,6 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          linked_product_id: string | null
           name: string
           price: number
           seller_id: string | null
@@ -235,7 +234,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          linked_product_id?: string | null
           name: string
           price: number
           seller_id?: string | null
@@ -253,7 +251,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          linked_product_id?: string | null
           name?: string
           price?: number
           seller_id?: string | null
@@ -267,13 +264,6 @@ export type Database = {
           variations?: Json | null
         }
         Relationships: [
-          {
-            foreignKeyName: "products_linked_product_id_fkey"
-            columns: ["linked_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "products_seller_id_fkey"
             columns: ["seller_id"]
