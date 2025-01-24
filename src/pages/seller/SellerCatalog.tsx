@@ -47,7 +47,10 @@ const SellerCatalog = () => {
         .eq("user_id", user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching seller profile:", error);
+        throw error;
+      }
       return data;
     },
   });
@@ -56,32 +59,50 @@ const SellerCatalog = () => {
     mutationFn: async (productId: string) => {
       if (!sellerProfile) throw new Error("Seller profile not found");
 
-      const { data: sourceProduct } = await supabase
+      // First, fetch the source product
+      const { data: sourceProduct, error: fetchError } = await supabase
         .from("products")
         .select("*")
         .eq("id", productId)
         .single();
 
-      if (!sourceProduct) throw new Error("Product not found");
+      if (fetchError || !sourceProduct) {
+        console.error("Error fetching source product:", fetchError);
+        throw new Error("Product not found");
+      }
 
       // Create a new product linked to the original one
-      const { error } = await supabase
+      const { data: newProduct, error: insertError } = await supabase
         .from("products")
         .insert({
-          ...sourceProduct,
-          id: undefined, // Let Supabase generate a new ID
+          name: sourceProduct.name,
+          description: sourceProduct.description,
+          price: sourceProduct.price,
+          sku: sourceProduct.sku,
+          variations: sourceProduct.variations,
+          stock: sourceProduct.stock,
+          supplier_id: sourceProduct.supplier_id,
           seller_id: sellerProfile.id,
           linked_product_id: productId,
-        });
+          active: true
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Error creating linked product:", insertError);
+        throw insertError;
+      }
+
+      return newProduct;
     },
     onSuccess: () => {
       toast.success("Produto adicionado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["catalog-products"] });
     },
-    onError: () => {
-      toast.error("Erro ao adicionar produto");
+    onError: (error) => {
+      console.error("Error in linkProduct mutation:", error);
+      toast.error("Erro ao adicionar produto. Por favor, tente novamente.");
     },
   });
 
@@ -150,10 +171,11 @@ const SellerCatalog = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => handleLinkProduct(product.id)}
+                  disabled={linkProduct.isPending}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
-                  Adicionar
+                  {linkProduct.isPending ? "Adicionando..." : "Adicionar"}
                 </Button>
               </div>
             </CardContent>
