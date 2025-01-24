@@ -219,6 +219,10 @@ export type Database = {
           id: string
           name: string
           price: number
+          seller_id: string | null
+          shopify_data: Json | null
+          shopify_id: string | null
+          shopify_variant_id: string | null
           sku: string | null
           stock: Json | null
           supplier_id: string | null
@@ -232,6 +236,10 @@ export type Database = {
           id?: string
           name: string
           price: number
+          seller_id?: string | null
+          shopify_data?: Json | null
+          shopify_id?: string | null
+          shopify_variant_id?: string | null
           sku?: string | null
           stock?: Json | null
           supplier_id?: string | null
@@ -245,6 +253,10 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          seller_id?: string | null
+          shopify_data?: Json | null
+          shopify_id?: string | null
+          shopify_variant_id?: string | null
           sku?: string | null
           stock?: Json | null
           supplier_id?: string | null
@@ -252,6 +264,13 @@ export type Database = {
           variations?: Json | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_supplier_id_fkey"
             columns: ["supplier_id"]

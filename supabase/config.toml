@@ -1,1 +1,8 @@
 project_id = "wckbbipwtelxqdaojmli"
+
+[api]
+enabled = true
+url = "https://wckbbipwtelxqdaojmli.supabase.co"
+
+[functions.sync-shopify-products]
+verify_jwt = true
