@@ -1,20 +1,20 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Search, Link, RefreshCw } from "lucide-react";
+import { Package, Search, Link as LinkIcon, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { LinkProductDialog } from "@/components/seller/LinkProductDialog";
 
 export default function SellerProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("my-products");
   const [linkingProductId, setLinkingProductId] = useState<string | null>(null);
-  const [catalogSearchTerm, setCatalogSearchTerm] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["seller-products"],
@@ -32,22 +32,8 @@ export default function SellerProducts() {
     },
   });
 
-  const { data: catalogProducts } = useQuery({
-    queryKey: ["catalog-products"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .is("seller_id", null)
-        .eq("active", true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const linkMutation = useMutation({
-    mutationFn: async (catalogProductId: string) => {
+    mutationFn: async ({ shopifyProductId, catalogProductId }: { shopifyProductId: string, catalogProductId: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
@@ -92,6 +78,7 @@ export default function SellerProducts() {
     onSuccess: () => {
       toast.success("Produto vinculado com sucesso!");
       setLinkingProductId(null);
+      queryClient.invalidateQueries({ queryKey: ["seller-products"] });
     },
     onError: (error: Error) => {
       console.error("Error linking product:", error);
@@ -115,6 +102,7 @@ export default function SellerProducts() {
     },
     onSuccess: (data) => {
       toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["seller-products"] });
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -125,13 +113,20 @@ export default function SellerProducts() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredCatalogProducts = catalogProducts?.filter((product) =>
-    product.name.toLowerCase().includes(catalogSearchTerm.toLowerCase())
-  );
-
   const handleLinkClick = (productId: string) => {
     setLinkingProductId(productId);
   };
+
+  const handleLinkProduct = (catalogProductId: string) => {
+    if (!linkingProductId) return;
+    
+    linkMutation.mutate({
+      shopifyProductId: linkingProductId,
+      catalogProductId: catalogProductId,
+    });
+  };
+
+  // ... keep existing code (JSX for the my-products tab)
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -178,6 +173,63 @@ export default function SellerProducts() {
           </div>
         </div>
 
+        <TabsContent value="shopify" className="mt-6">
+          {isLoading ? (
+            <div className="text-center py-8">Carregando produtos...</div>
+          ) : filteredProducts?.filter(p => p.shopify_id)?.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Nenhum produto Shopify encontrado. Clique em sincronizar para importar seus produtos.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredProducts
+                ?.filter(p => p.shopify_id)
+                .map((product) => (
+                  <Card key={product.id} className="overflow-hidden">
+                    <CardHeader className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-base line-clamp-1">
+                          {product.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleLinkClick(product.id)}
+                            disabled={linkMutation.isPending}
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
+                          <Badge variant={product.active ? "default" : "secondary"}>
+                            {product.active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {product.description}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">
+                          R$ {product.price.toFixed(2)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          SKU: {product.sku || "N/A"}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="my-products" className="mt-6">
           {isLoading ? (
             <div className="text-center py-8">Carregando produtos...</div>
@@ -222,110 +274,14 @@ export default function SellerProducts() {
             </div>
           )}
         </TabsContent>
-
-        <TabsContent value="shopify" className="mt-6">
-          {isLoading ? (
-            <div className="text-center py-8">Carregando produtos...</div>
-          ) : filteredProducts?.filter(p => p.shopify_id)?.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Nenhum produto Shopify encontrado. Clique em sincronizar para importar seus produtos.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProducts
-                ?.filter(p => p.shopify_id)
-                .map((product) => (
-                  <Card key={product.id} className="overflow-hidden">
-                    <CardHeader className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-base line-clamp-1">
-                          {product.name}
-                        </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleLinkClick(product.id)}
-                            disabled={linkMutation.isPending}
-                          >
-                            <Link className="h-4 w-4" />
-                          </Button>
-                          <Badge variant={product.active ? "default" : "secondary"}>
-                            {product.active ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {product.description}
-                      </p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          R$ {product.price.toFixed(2)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          SKU: {product.sku || "N/A"}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
 
-      <Dialog open={!!linkingProductId} onOpenChange={() => setLinkingProductId(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Vincular Produto do Catálogo</DialogTitle>
-          </DialogHeader>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar no catálogo..."
-              className="pl-8"
-              value={catalogSearchTerm}
-              onChange={(e) => setCatalogSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-            {filteredCatalogProducts?.map((product) => (
-              <Card key={product.id} className="overflow-hidden">
-                <CardHeader className="space-y-2">
-                  <CardTitle className="text-base line-clamp-1">
-                    {product.name}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {product.description}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">
-                      R$ {product.price.toFixed(2)}
-                    </span>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => linkMutation.mutate(product.id)}
-                      disabled={linkMutation.isPending}
-                    >
-                      {linkMutation.isPending ? "Vinculando..." : "Vincular"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <LinkProductDialog
+        isOpen={!!linkingProductId}
+        onClose={() => setLinkingProductId(null)}
+        onLink={handleLinkProduct}
+        isLinking={linkMutation.isPending}
+      />
     </div>
   );
 }
