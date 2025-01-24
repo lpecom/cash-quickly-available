@@ -129,6 +129,10 @@ export default function SellerProducts() {
     product.name.toLowerCase().includes(catalogSearchTerm.toLowerCase())
   );
 
+  const handleLinkClick = (productId: string) => {
+    setLinkingProductId(productId);
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
@@ -246,7 +250,8 @@ export default function SellerProducts() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setLinkingProductId(product.id)}
+                            onClick={() => handleLinkClick(product.id)}
+                            disabled={linkMutation.isPending}
                           >
                             <Link className="h-4 w-4" />
                           </Button>
