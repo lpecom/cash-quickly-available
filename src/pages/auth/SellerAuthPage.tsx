@@ -17,22 +17,26 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Building2 } from "lucide-react";
 
-const authSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+});
+
+const signupSchema = loginSchema.extend({
   businessName: z.string().min(2, "Nome da empresa é obrigatório"),
   fullName: z.string().min(2, "Nome completo é obrigatório"),
 });
 
-type AuthForm = z.infer<typeof authSchema>;
+type LoginForm = z.infer<typeof loginSchema>;
+type SignupForm = z.infer<typeof signupSchema>;
 
 const SellerAuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
-  const form = useForm<AuthForm>({
-    resolver: zodResolver(authSchema),
+  const form = useForm<SignupForm>({
+    resolver: zodResolver(isSignUp ? signupSchema : loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -41,12 +45,13 @@ const SellerAuthPage = () => {
     },
   });
 
-  const onSubmit = async (data: AuthForm) => {
+  const onSubmit = async (data: SignupForm) => {
     try {
       setIsLoading(true);
+      console.log("Attempting authentication...", { isSignUp, email: data.email });
       
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
@@ -58,21 +63,48 @@ const SellerAuthPage = () => {
           }
         });
 
-        if (error) throw error;
-        toast.success("Cadastro realizado com sucesso!");
+        if (signUpError) {
+          console.error("Signup error:", signUpError);
+          throw signUpError;
+        }
+        
+        toast.success("Cadastro realizado com sucesso! Verifique seu email.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
-        if (error) throw error;
-        toast.success("Login realizado com sucesso!");
-      }
+        if (signInError) {
+          console.error("Login error:", signInError);
+          throw signInError;
+        }
 
-      navigate("/seller");
+        if (!signInData.user) {
+          throw new Error("No user data returned");
+        }
+
+        // Fetch user profile to verify role
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', signInData.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          throw new Error("Erro ao verificar perfil do usuário");
+        }
+
+        if (profileData.role !== 'seller') {
+          throw new Error("Acesso não autorizado. Esta área é restrita para vendedores.");
+        }
+
+        toast.success("Login realizado com sucesso!");
+        navigate("/seller");
+      }
     } catch (error: any) {
-      console.error("Error in authentication:", error);
+      console.error("Authentication error:", error);
       toast.error(error.message || "Erro na autenticação");
     } finally {
       setIsLoading(false);
@@ -157,7 +189,11 @@ const SellerAuthPage = () => {
                 </>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
                 {isLoading ? "Processando..." : isSignUp ? "Cadastrar" : "Entrar"}
               </Button>
             </form>
