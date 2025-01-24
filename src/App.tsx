@@ -30,13 +30,15 @@ import SellerSettings from "./pages/seller/SellerSettings";
 import SellerIntegrations from "./pages/seller/SellerIntegrations";
 import SellerCatalog from "./pages/seller/SellerCatalog";
 
+import SellerOrders from "./pages/seller/SellerOrders";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Landing Page */}
         <Route path="/" element={<Index />} />
-        
+
         {/* Auth Routes */}
         <Route path="/auth/admin" element={<AdminAuthPage />} />
         <Route path="/auth/motoboy" element={<MotoboyAuthPage />} />
@@ -73,6 +75,7 @@ function App() {
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
           <Route path="catalog" element={<SellerCatalog />} />
+          <Route path="orders" element={<SellerOrders />} />
           <Route path="settings" element={<SellerSettings />} />
           <Route path="integrations" element={<SellerIntegrations />} />
         </Route>
