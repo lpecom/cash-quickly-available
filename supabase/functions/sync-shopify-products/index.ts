@@ -81,29 +81,59 @@ serve(async (req) => {
     console.log('Fetched Shopify products:', shopifyData.products.length);
 
     // Process each product and upsert to our database
-    const productsToUpsert = shopifyData.products.map((product: any) => ({
-      name: product.title,
-      description: product.body_html,
-      price: product.variants[0]?.price || 0,
-      sku: product.variants[0]?.sku,
-      shopify_id: product.id.toString(),
-      shopify_variant_id: product.variants[0]?.id.toString(),
-      shopify_data: product,
-      seller_id: sellerProfile.id,
-      active: true,
-    }));
+    const productsToUpsert = shopifyData.products.map((product: any) => {
+      // Generate a unique SKU if none exists
+      const sku = product.variants[0]?.sku || `SHOPIFY-${product.id}-${sellerProfile.id}`;
+      
+      return {
+        name: product.title,
+        description: product.body_html,
+        price: product.variants[0]?.price || 0,
+        sku: sku,
+        shopify_id: product.id.toString(),
+        shopify_variant_id: product.variants[0]?.id.toString(),
+        shopify_data: product,
+        seller_id: sellerProfile.id,
+        active: true,
+      };
+    });
 
     console.log('Upserting products to database:', productsToUpsert.length);
 
-    const { error: upsertError } = await supabase
+    // First, get existing products for this seller
+    const { data: existingProducts, error: fetchError } = await supabase
       .from('products')
-      .upsert(productsToUpsert, {
-        onConflict: 'shopify_id,seller_id',
-      });
+      .select('shopify_id, id')
+      .eq('seller_id', sellerProfile.id);
 
-    if (upsertError) {
-      console.error('Error upserting products:', upsertError);
-      throw new Error('Failed to sync products with database');
+    if (fetchError) {
+      console.error('Error fetching existing products:', fetchError);
+      throw new Error('Failed to fetch existing products');
+    }
+
+    // Create a map of existing products
+    const existingProductsMap = new Map(
+      existingProducts?.map(p => [p.shopify_id, p.id]) || []
+    );
+
+    // Update products one by one to handle conflicts
+    for (const product of productsToUpsert) {
+      const existingId = existingProductsMap.get(product.shopify_id);
+      
+      const { error: upsertError } = await supabase
+        .from('products')
+        .upsert({
+          ...product,
+          ...(existingId && { id: existingId }), // Include existing ID if found
+        }, {
+          onConflict: 'shopify_id,seller_id',
+        });
+
+      if (upsertError) {
+        console.error('Error upserting product:', upsertError, product);
+        // Continue with other products even if one fails
+        continue;
+      }
     }
 
     console.log('Products sync completed successfully');
