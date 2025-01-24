@@ -46,7 +46,7 @@ const SellerAuthPage = () => {
       setIsLoading(true);
       
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
@@ -58,19 +58,35 @@ const SellerAuthPage = () => {
           }
         });
 
-        if (error) throw error;
+        if (signUpError) throw signUpError;
         toast.success("Cadastro realizado com sucesso!");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log('Attempting to sign in:', data.email);
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
-        if (error) throw error;
-        toast.success("Login realizado com sucesso!");
-      }
+        if (signInError) throw signInError;
 
-      navigate("/seller");
+        // Verify if the user has a seller profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', signInData.user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        if (profile.role !== 'seller') {
+          await supabase.auth.signOut();
+          throw new Error("Esta conta não tem permissão de vendedor");
+        }
+
+        console.log('Login successful, navigating to /seller');
+        toast.success("Login realizado com sucesso!");
+        navigate("/seller");
+      }
     } catch (error: any) {
       console.error("Error in authentication:", error);
       toast.error(error.message || "Erro na autenticação");
