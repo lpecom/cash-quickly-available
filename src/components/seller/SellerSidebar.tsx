@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Package, Settings, Store, Share2 } from "lucide-react";
+import { Package, Settings, Store, Share2, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 
@@ -10,6 +10,11 @@ export const SellerSidebar = () => {
       title: "Dashboard",
       icon: Store,
       href: "/seller",
+    },
+    {
+      title: "Pedidos",
+      icon: List,
+      href: "/seller/orders",
     },
     {
       title: "Catálogo",
