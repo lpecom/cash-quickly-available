@@ -10,8 +10,7 @@ import { ArrowRight, ShoppingBag, Link, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface OnboardingFormValues {
-  shopify_app_id: string;
-  shopify_app_secret: string;
+  shopify_access_token: string;
   shopify_settings: {
     store_name: string;
     location_id: string;
@@ -24,8 +23,7 @@ export function ShopifyOnboarding() {
 
   const form = useForm<OnboardingFormValues>({
     defaultValues: {
-      shopify_app_id: "",
-      shopify_app_secret: "",
+      shopify_access_token: "",
       shopify_settings: {
         store_name: "",
         location_id: "",
@@ -41,8 +39,7 @@ export function ShopifyOnboarding() {
       const { error } = await supabase
         .from('seller_profiles')
         .update({
-          shopify_app_id: values.shopify_app_id,
-          shopify_app_secret: values.shopify_app_secret,
+          shopify_app_secret: values.shopify_access_token, // We store the access token in the app_secret field
           shopify_settings: values.shopify_settings,
           shopify_onboarding_status: 'completed',
         })
@@ -80,8 +77,16 @@ export function ShopifyOnboarding() {
           <ol className="list-decimal list-inside space-y-2">
             <li>Go to your Shopify admin panel</li>
             <li>Navigate to Settings → Apps and sales channels</li>
-            <li>Click "Develop apps"</li>
-            <li>Create a new app and note down the API credentials</li>
+            <li>Click "Develop apps" and create a new app</li>
+            <li>In Configuration, select "Admin API integration"</li>
+            <li>Under Admin API access scopes, add these permissions:
+              <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>read_products, write_products</li>
+                <li>read_orders, write_orders</li>
+                <li>read_inventory, write_inventory</li>
+              </ul>
+            </li>
+            <li>Install the app and copy the Admin API access token</li>
           </ol>
           <Button 
             variant="outline" 
@@ -102,7 +107,7 @@ export function ShopifyOnboarding() {
               Step 2: Configure App Settings
             </CardTitle>
             <CardDescription>
-              Enter your Shopify app credentials and store details
+              Enter your Shopify access token and store details
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -110,31 +115,15 @@ export function ShopifyOnboarding() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="shopify_app_id"
+                  name="shopify_access_token"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>App ID</FormLabel>
+                      <FormLabel>Access Token</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter your Shopify app ID" />
+                        <Input {...field} type="password" placeholder="Enter your Shopify access token" />
                       </FormControl>
                       <FormDescription>
-                        Found in your app's API credentials
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="shopify_app_secret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>App Secret</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" placeholder="Enter your Shopify app secret" />
-                      </FormControl>
-                      <FormDescription>
-                        The secret key from your app's API credentials
+                        The Admin API access token from your private app
                       </FormDescription>
                     </FormItem>
                   )}
