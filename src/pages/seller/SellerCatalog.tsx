@@ -1,50 +1,48 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricCard } from "@/components/MetricCard";
+
+const mockProducts = [
+  {
+    id: "1",
+    name: "Smartphone XYZ",
+    description: "Latest model with advanced features",
+    price: 1299.99,
+    supplier: { name: "Tech Supplies Ltd" },
+    metrics: {
+      sales: 150,
+      commission: 2500.00,
+      rating: 4.5
+    }
+  },
+  {
+    id: "2",
+    name: "Laptop Pro",
+    description: "High-performance laptop for professionals",
+    price: 3499.99,
+    supplier: { name: "Computer World" },
+    metrics: {
+      sales: 75,
+      commission: 5250.00,
+      rating: 4.8
+    }
+  },
+  {
+    id: "3",
+    name: "Wireless Earbuds",
+    description: "Premium sound quality with noise cancellation",
+    price: 299.99,
+    supplier: { name: "Audio Masters" },
+    metrics: {
+      sales: 300,
+      commission: 1500.00,
+      rating: 4.2
+    }
+  }
+];
 
 const SellerCatalog = () => {
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          supplier:suppliers(name)
-        `)
-        .eq("active", true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Package className="h-5 w-5" />
-          <h1 className="text-2xl font-semibold">Catálogo</h1>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="space-y-2">
-                <div className="h-4 w-1/2 bg-muted rounded" />
-                <div className="h-4 w-1/4 bg-muted rounded" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-4 w-3/4 bg-muted rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -53,32 +51,55 @@ const SellerCatalog = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {products?.map((product) => (
-          <Card key={product.id}>
+        {mockProducts.map((product) => (
+          <Card key={product.id} className="overflow-hidden">
             <CardHeader>
               <CardTitle className="text-lg">{product.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Fornecedor: {product.supplier.name}
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
+                <Package className="h-12 w-12 text-muted-foreground" />
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <MetricCard
+                  title="Vendas"
+                  value={product.metrics.sales.toString()}
+                  icon={Package}
+                />
+                <MetricCard
+                  title="Comissão"
+                  value={`R$ ${product.metrics.commission.toFixed(2)}`}
+                  icon={Package}
+                />
+                <MetricCard
+                  title="Avaliação"
+                  value={product.metrics.rating.toString()}
+                  icon={Package}
+                />
+              </div>
+
+              {product.description && (
+                <p className="text-sm text-muted-foreground">
+                  {product.description}
+                </p>
+              )}
+
               <p className="text-lg font-semibold">
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                 }).format(product.price)}
               </p>
-              {product.description && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {product.description}
-                </p>
-              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {products?.length === 0 && (
+      {mockProducts.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
