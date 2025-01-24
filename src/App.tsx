@@ -29,7 +29,7 @@ import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerSettings from "./pages/seller/SellerSettings";
 import SellerIntegrations from "./pages/seller/SellerIntegrations";
 import SellerCatalog from "./pages/seller/SellerCatalog";
-
+import SellerProducts from "./pages/seller/SellerProducts";
 import SellerOrders from "./pages/seller/SellerOrders";
 
 function App() {
@@ -75,6 +75,7 @@ function App() {
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
           <Route path="catalog" element={<SellerCatalog />} />
+          <Route path="products" element={<SellerProducts />} />
           <Route path="orders" element={<SellerOrders />} />
           <Route path="settings" element={<SellerSettings />} />
           <Route path="integrations" element={<SellerIntegrations />} />
