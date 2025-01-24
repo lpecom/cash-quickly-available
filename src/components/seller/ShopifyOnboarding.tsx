@@ -6,13 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingBag, Link, Upload, Check } from "lucide-react";
+import { ArrowRight, ShoppingBag, Link, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface OnboardingFormValues {
   shopify_app_id: string;
   shopify_app_secret: string;
-  shopify_theme_id: string;
   shopify_settings: {
     store_name: string;
     location_id: string;
@@ -27,7 +26,6 @@ export function ShopifyOnboarding() {
     defaultValues: {
       shopify_app_id: "",
       shopify_app_secret: "",
-      shopify_theme_id: "",
       shopify_settings: {
         store_name: "",
         location_id: "",
@@ -45,7 +43,6 @@ export function ShopifyOnboarding() {
         .update({
           shopify_app_id: values.shopify_app_id,
           shopify_app_secret: values.shopify_app_secret,
-          shopify_theme_id: values.shopify_theme_id,
           shopify_settings: values.shopify_settings,
           shopify_onboarding_status: 'completed',
         })
@@ -170,51 +167,6 @@ export function ShopifyOnboarding() {
                       </FormControl>
                       <FormDescription>
                         The ID of the location where orders will be fulfilled
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setCurrentStep(3)}
-                >
-                  Continue to theme setup
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
-
-      {currentStep >= 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Step 3: Theme Setup
-            </CardTitle>
-            <CardDescription>
-              Configure your Shopify theme for our checkout integration
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="shopify_theme_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Theme ID</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter your theme ID" />
-                      </FormControl>
-                      <FormDescription>
-                        Found in Theme → Customize → URL (theme_id parameter)
                       </FormDescription>
                     </FormItem>
                   )}
