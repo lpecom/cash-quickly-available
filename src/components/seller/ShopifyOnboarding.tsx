@@ -10,11 +10,9 @@ import { ArrowRight, ShoppingBag, Link, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface OnboardingFormValues {
-  shopify_access_token: string;
-  shopify_settings: {
-    store_name: string;
-    location_id: string;
-  };
+  store_url: string;
+  access_token: string;
+  location_id: string;
 }
 
 export function ShopifyOnboarding() {
@@ -23,11 +21,9 @@ export function ShopifyOnboarding() {
 
   const form = useForm<OnboardingFormValues>({
     defaultValues: {
-      shopify_access_token: "",
-      shopify_settings: {
-        store_name: "",
-        location_id: "",
-      }
+      store_url: "",
+      access_token: "",
+      location_id: "",
     },
   });
 
@@ -36,11 +32,17 @@ export function ShopifyOnboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Extract store name from the full URL
+      const storeUrl = values.store_url.replace('https://', '').replace('.myshopify.com', '');
+
       const { error } = await supabase
         .from('seller_profiles')
         .update({
-          shopify_app_secret: values.shopify_access_token, // We store the access token in the app_secret field
-          shopify_settings: values.shopify_settings,
+          shopify_app_secret: values.access_token,
+          shopify_settings: {
+            store_name: storeUrl,
+            location_id: values.location_id,
+          },
           shopify_onboarding_status: 'completed',
         })
         .eq('user_id', user.id);
@@ -84,6 +86,7 @@ export function ShopifyOnboarding() {
                 <li>read_products, write_products</li>
                 <li>read_orders, write_orders</li>
                 <li>read_inventory, write_inventory</li>
+                <li>read_locations</li>
               </ul>
             </li>
             <li>Install the app and copy the Admin API access token</li>
@@ -104,10 +107,10 @@ export function ShopifyOnboarding() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Link className="h-5 w-5" />
-              Step 2: Configure App Settings
+              Step 2: Configure Store Connection
             </CardTitle>
             <CardDescription>
-              Enter your Shopify access token and store details
+              Enter your Shopify store details and access token
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -115,12 +118,28 @@ export function ShopifyOnboarding() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="shopify_access_token"
+                  name="store_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Access Token</FormLabel>
+                      <FormLabel>Store URL</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" placeholder="Enter your Shopify access token" />
+                        <Input {...field} placeholder="your-store.myshopify.com" />
+                      </FormControl>
+                      <FormDescription>
+                        Your full Shopify store URL (e.g., your-store.myshopify.com)
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="access_token"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Admin API Access Token</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" placeholder="shpat_xxxxxxxxxxxxxxxxxxxxx" />
                       </FormControl>
                       <FormDescription>
                         The Admin API access token from your private app
@@ -131,23 +150,7 @@ export function ShopifyOnboarding() {
 
                 <FormField
                   control={form.control}
-                  name="shopify_settings.store_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Store Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="your-store" />
-                      </FormControl>
-                      <FormDescription>
-                        The name of your Shopify store (e.g., your-store.myshopify.com)
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="shopify_settings.location_id"
+                  name="location_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Location ID</FormLabel>
@@ -155,7 +158,7 @@ export function ShopifyOnboarding() {
                         <Input {...field} placeholder="Enter your Shopify location ID" />
                       </FormControl>
                       <FormDescription>
-                        The ID of the location where orders will be fulfilled
+                        The ID of the location where orders will be fulfilled. You can find this in Shopify admin under Settings → Locations
                       </FormDescription>
                     </FormItem>
                   )}
