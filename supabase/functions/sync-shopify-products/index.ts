@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting Shopify products sync...');
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -27,8 +29,11 @@ serve(async (req) => {
     // Get the user's JWT claims to verify their identity
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader);
     if (userError || !user) {
+      console.error('User authentication error:', userError);
       throw new Error('Invalid authorization');
     }
+
+    console.log('Authenticated user:', user.id);
 
     // Get the seller's profile with Shopify credentials
     const { data: sellerProfile, error: sellerError } = await supabase
@@ -38,6 +43,7 @@ serve(async (req) => {
       .single();
 
     if (sellerError || !sellerProfile) {
+      console.error('Seller profile error:', sellerError);
       throw new Error('Seller profile not found');
     }
 
@@ -52,6 +58,8 @@ serve(async (req) => {
       throw new Error('Shopify access token not found');
     }
 
+    console.log('Fetching products from Shopify store:', storeName);
+
     // Fetch products from Shopify
     const shopifyResponse = await fetch(
       `https://${storeName}.myshopify.com/admin/api/2024-01/products.json`,
@@ -64,11 +72,13 @@ serve(async (req) => {
     );
 
     if (!shopifyResponse.ok) {
-      throw new Error('Failed to fetch Shopify products');
+      const errorText = await shopifyResponse.text();
+      console.error('Shopify API error:', errorText);
+      throw new Error(`Failed to fetch Shopify products: ${shopifyResponse.status} ${errorText}`);
     }
 
     const shopifyData = await shopifyResponse.json();
-    console.log('Fetched Shopify products:', shopifyData);
+    console.log('Fetched Shopify products:', shopifyData.products.length);
 
     // Process each product and upsert to our database
     const productsToUpsert = shopifyData.products.map((product: any) => ({
@@ -83,6 +93,8 @@ serve(async (req) => {
       active: true,
     }));
 
+    console.log('Upserting products to database:', productsToUpsert.length);
+
     const { error: upsertError } = await supabase
       .from('products')
       .upsert(productsToUpsert, {
@@ -93,6 +105,8 @@ serve(async (req) => {
       console.error('Error upserting products:', upsertError);
       throw new Error('Failed to sync products with database');
     }
+
+    console.log('Products sync completed successfully');
 
     return new Response(
       JSON.stringify({ 
